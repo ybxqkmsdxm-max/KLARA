@@ -29,6 +29,8 @@ import {
   Receipt,
   BarChart3,
   Download,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import {
   AreaChart,
@@ -39,6 +41,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { formatCurrency, getInvoiceStatusLabel, getInvoiceStatusVariant } from "@/lib/formatters";
 
@@ -99,6 +102,11 @@ function StatCard({
 }) {
   return (
     <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200">
+      {/* Decorative gradient blob for visual depth */}
+      <div
+        className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 pointer-events-none blur-2xl"
+        style={{ background: `radial-gradient(circle, ${color}25, transparent 70%)` }}
+      />
       <CardContent className="p-4 lg:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -107,20 +115,20 @@ function StatCard({
               <Skeleton className="h-8 w-28 mt-2" />
             ) : (
               <>
-                <p className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 text-wrap font-mono tabular-nums leading-snug">{value}</p>
                 {trend !== undefined && (
-                  <div className="mt-1.5">
+                  <div className="mt-2">
                     <span
-                      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                      className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
                         trend >= 0
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
                           : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
                       }`}
                     >
                       {trend >= 0 ? (
-                        <ChevronUp className="h-3 w-3" />
+                        <ChevronUp className="h-3.5 w-3.5" />
                       ) : (
-                        <ChevronDown className="h-3 w-3" />
+                        <ChevronDown className="h-3.5 w-3.5" />
                       )}
                       {trend >= 0 ? "+" : ""}
                       {trend}% {trendLabel}
@@ -511,19 +519,20 @@ export default function DashboardPage() {
                     }
                     wrapperStyle={{ fontSize: 12 }}
                   />
+                  <ReferenceLine y={0} stroke="#94A3B8" strokeDasharray="3 3" />
                   <Area
-                    type="monotone"
+                    type="natural"
                     dataKey="encaissements"
                     stroke="#00D4AA"
                     fill="url(#gradientEncaissements)"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                   />
                   <Area
-                    type="monotone"
+                    type="natural"
                     dataKey="depenses"
                     stroke="#FFB347"
                     fill="url(#gradientDepenses)"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -708,6 +717,75 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Prévisions de trésorerie */}
+      <Card className="relative overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base font-semibold">Prévisions de trésorerie</CardTitle>
+          <span className="text-xs text-muted-foreground">Mois en cours</span>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Entrées prévues */}
+            <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 dark:border-emerald-500/20 dark:bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center">
+                  <ArrowUpRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Entrées prévues</span>
+              </div>
+              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-emerald-800 dark:text-emerald-300">3 500 000 FCFA</p>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Projeté</span>
+                  <span>78% atteint</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-emerald-200 dark:bg-emerald-500/20 overflow-hidden">
+                  <div className="h-full w-[78%] rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                </div>
+              </div>
+            </div>
+            {/* Sorties prévues */}
+            <div className="rounded-xl border border-orange-200/60 bg-orange-50/50 dark:border-orange-500/20 dark:bg-orange-500/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-500/15 flex items-center justify-center">
+                  <ArrowDownRight className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <span className="text-xs font-medium text-orange-700 dark:text-orange-400">Sorties prévues</span>
+              </div>
+              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-orange-800 dark:text-orange-300">1 800 000 FCFA</p>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Projeté</span>
+                  <span>85% atteint</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-orange-200 dark:bg-orange-500/20 overflow-hidden">
+                  <div className="h-full w-[85%] rounded-full bg-orange-500 dark:bg-orange-400" />
+                </div>
+              </div>
+            </div>
+            {/* Solde projeté */}
+            <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 dark:border-blue-500/20 dark:bg-blue-500/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/15 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Solde projeté</span>
+              </div>
+              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-blue-800 dark:text-blue-300">1 700 000 FCFA</p>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Actual vs Projeté</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-medium">+48%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-blue-200 dark:bg-blue-500/20 overflow-hidden">
+                  <div className="h-full w-[60%] rounded-full bg-blue-500 dark:bg-blue-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Activity Timeline */}
       <Card>

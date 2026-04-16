@@ -48,6 +48,7 @@ import {
   Invoice,
   CircleDollarSign,
   AlertCircle,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -416,19 +417,19 @@ export default function ParametresPage() {
       {/* Tabs */}
       <Tabs defaultValue="entreprise">
         <TabsList className="bg-muted w-full sm:w-auto grid grid-cols-4 sm:inline-flex">
-          <TabsTrigger value="entreprise" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="entreprise" className="gap-1.5 text-xs sm:text-sm transition-colors duration-200">
             <Building2 className="h-3.5 w-3.5 hidden sm:block" />
             Entreprise
           </TabsTrigger>
-          <TabsTrigger value="facturation" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="facturation" className="gap-1.5 text-xs sm:text-sm transition-colors duration-200">
             <FileText className="h-3.5 w-3.5 hidden sm:block" />
             Facturation
           </TabsTrigger>
-          <TabsTrigger value="equipe" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="equipe" className="gap-1.5 text-xs sm:text-sm transition-colors duration-200">
             <Users className="h-3.5 w-3.5 hidden sm:block" />
             Équipe
           </TabsTrigger>
-          <TabsTrigger value="abonnement" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="abonnement" className="gap-1.5 text-xs sm:text-sm transition-colors duration-200">
             <CreditCard className="h-3.5 w-3.5 hidden sm:block" />
             Abonnement
           </TabsTrigger>
@@ -449,6 +450,7 @@ export default function ParametresPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Informations générales</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Nom */}
                 <div className="space-y-2">
@@ -497,6 +499,12 @@ export default function ParametresPage() {
                   <FieldError message={orgErrors.phone} />
                 </div>
 
+              </div>
+
+              <Separator />
+
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Coordonnées</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Ville */}
                 <div className="space-y-2">
                   <Label htmlFor="orgCity">
@@ -523,6 +531,12 @@ export default function ParametresPage() {
                   />
                 </div>
 
+              </div>
+
+              <Separator />
+
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Documents &amp; Activité</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Secteur */}
                 <div className="space-y-2">
                   <Label>Secteur d&apos;activité</Label>
@@ -609,6 +623,7 @@ export default function ParametresPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Paramètres par défaut</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Taux de TVA */}
                 <div className="space-y-2">
@@ -668,6 +683,8 @@ export default function ParametresPage() {
               </div>
 
               <Separator />
+
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Documents</p>
 
               {/* Notes par défaut */}
               <div className="space-y-2">
@@ -891,6 +908,14 @@ export default function ParametresPage() {
         {/* TAB 4 — ABONNEMENT                     */}
         {/* ═══════════════════════════════════════ */}
         <TabsContent value="abonnement" className="mt-6 space-y-6">
+          {/* Info Banner */}
+          <div className="flex items-center gap-3 rounded-lg border border-[#00D4AA]/20 bg-[#00D4AA]/5 px-4 py-3">
+            <Info className="h-5 w-5 text-[#00D4AA] shrink-0" />
+            <p className="text-sm text-muted-foreground">
+              Votre plan se renouvelle automatiquement le 15 mars 2025.
+            </p>
+          </div>
+
           {/* Current Plan */}
           <Card className="border-[#00D4AA]/20 bg-gradient-to-br from-[#00D4AA]/5 to-transparent">
             <CardContent className="p-4 sm:p-6">
@@ -970,8 +995,9 @@ export default function ParametresPage() {
                     key={plan.name}
                     className={cn(
                       "relative transition-shadow hover:shadow-lg",
-                      plan.popular && "border-[#00D4AA]",
-                      plan.current && "ring-2 ring-[#00D4AA]/30"
+                      plan.popular && "border-[#00D4AA] bg-gradient-to-br from-[#00D4AA]/[0.03] to-white dark:to-slate-900",
+                      plan.current && "ring-2 ring-[#00D4AA]/30",
+                      !plan.popular && !plan.current && "bg-gradient-to-br from-slate-50/50 to-white dark:from-slate-900/50 dark:to-slate-900"
                     )}
                   >
                     {plan.popular && (

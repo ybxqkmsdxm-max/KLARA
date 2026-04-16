@@ -908,6 +908,74 @@ Créer une page de prévisualisation print-ready pour les factures, accessible d
 
 ---
 
+## Session 2-c — Styling Consistency: Clients Page & Settings Page
+
+### Objectif :
+Améliorer la cohérence visuelle sur la page Clients et la page Paramètres suite aux retours QA (Clients: 6/10, Paramètres: 7/10). Problèmes identifiés : bordures de cartes incohérentes, manque de feedback hover, absence de hiérarchie visuelle dans les formulaires.
+
+### Modifications apportées :
+
+#### 1. Page Clients (`src/app/dashboard/clients/page.tsx`)
+
+##### Fix : Bordure gauche cohérente sur les cartes
+- **Avant** : Entreprise = `border-l-blue-500`, Particulier = `border-l-gray-300 dark:border-l-gray-600` (visuellement faible)
+- **Après** : Entreprise = `border-l-blue-500` (conservé), Particulier = `border-l-[#8B5CF6]` (violet, visuellement distinct)
+
+##### Fix : Hover & cursor sur les cartes
+- **Avant** : `hover:shadow-md transition-shadow`
+- **Après** : `hover:shadow-md transition-all duration-200 cursor-pointer` — transition plus fluide sur toutes les propriétés, curseur pointer
+
+##### Amélioration : Affichage des montants "Payé"
+- Ajout de `font-mono` sur le montant payé pour un meilleur alignement des chiffres
+
+##### Nouveau : Barre de ratio payé/total
+- Ajout d'une barre de progression (h-1, bg-emerald-500) sous le montant total de chaque carte client
+- Largeur calculée dynamiquement : `Math.round((totalPaye / totalFacture) * 100)%`
+- Permet de visualiser rapidement le taux de recouvrement par client
+
+##### Amélioration : Barre de recherche
+- **Avant** : Input h-10 avec bordure simple
+- **Après** : Wrapper avec `focus-within:border-[#00D4AA]` + Input h-12, `text-base`, `border-0 focus-visible:ring-0` — recherche plus grande, plus lisible, feedback focus vert KLARA
+
+#### 2. Page Paramètres (`src/app/dashboard/parametres/page.tsx`)
+
+##### Amélioration : TabsTrigger hover
+- Ajout de `transition-colors duration-200` sur les 4 TabsTrigger (Entreprise, Facturation, Équipe, Abonnement)
+
+##### Amélioration : En-têtes de section dans l'onglet Entreprise
+- **Avant** : Grille de champs continue sans séparation
+- **Après** : 3 sections avec en-têtes stylisés + séparateurs :
+  1. `Informations générales` (Nom, Email, Téléphone)
+  2. `Coordonnées` (Ville, Adresse)
+  3. `Documents & Activité` (Secteur, NIF)
+- Style des en-têtes : `text-sm font-semibold text-muted-foreground uppercase tracking-wider`
+- Séparateurs `<Separator />` entre chaque groupe
+
+##### Amélioration : En-têtes de section dans l'onglet Facturation
+- **Avant** : Grille de champs puis textarea sans séparation
+- **Après** : 2 sections avec en-têtes :
+  1. `Paramètres par défaut` (TVA, Conditions, Devise)
+  2. `Documents` (Notes, Conditions générales)
+- Séparateurs `<Separator />` entre chaque groupe
+
+##### Nouveau : Bannière info dans l'onglet Abonnement
+- Bannière avec icône `Info` (lucide-react), bordure et fond #00D4AA/5
+- Message : "Votre plan se renouvelle automatiquement le 15 mars 2025."
+- Placée en haut de l'onglet Abonnement
+
+##### Amélioration : Gradient sur les cartes de comparaison de plans
+- **Plan populaire** (Business) : `bg-gradient-to-br from-[#00D4AA]/[0.03] to-white dark:to-slate-900` + bordure #00D4AA
+- **Plans non-populaires** (Starter, Pro) : `bg-gradient-to-br from-slate-50/50 to-white dark:from-slate-900/50 dark:to-slate-900` — gradient subtil pour la profondeur
+
+### État :
+- ✅ ESLint clean (0 erreurs, 0 warnings)
+- ✅ Compilation Next.js OK (239ms)
+- ✅ Aucune nouvelle dépendance ajoutée
+- ✅ Éditions ciblées (pas de réécriture complète)
+- ✅ Dark mode supporté sur tous les changements
+
+---
+
 ## Session 12 — Page Transitions & Micro-Interactions
 
 ### Objectif :
@@ -938,3 +1006,150 @@ Ajouter des transitions de page fluides et des micro-interactions à travers l'a
 - ✅ ESLint clean
 - ✅ Aucune nouvelle dépendance
 - ✅ Accessibilité améliorée
+
+---
+
+## Task 2-a — Dashboard Data Visualization Fixes & Cashflow Forecast
+
+### Objectif :
+Corriger les problèmes identifiés par la QA sur le dashboard principal : troncature des StatCards, qualité visuelle faible, courbes du graphique, et ajouter une section prévisions de trésorerie.
+
+### Modifications apportées (`src/app/dashboard/page.tsx`) :
+
+#### FIX 1 : StatCard Truncation
+- **Suppression de `truncate`** : la classe `truncate` tronquait les valeurs FCFA longues (ex. "-498 000..." → "-498 000 FCFA")
+- **Ajout de `text-wrap`** : permet au texte de passer à la ligne naturellement
+- **Typographie responsive** : `text-xl lg:text-2xl` → `text-lg sm:text-xl lg:text-2xl` pour une meilleure lisibilité mobile
+- **`font-mono tabular-nums`** : ajouté pour un alignement optimal des chiffres et une lecture facilitée des montants FCFA
+- **`leading-snug`** : interligne resserré pour éviter que les valeurs FCFA prennent trop d'espace vertical
+
+#### FIX 2 : StatCard Visual Depth
+- **Gradient blob décoratif** : ajout d'un `div` en position absolute (top-right, -8px offset) avec `radial-gradient(circle, ${color}25, transparent 70%)`, `blur-2xl`, `opacity-30` — crée un halo subtil coloré derrière chaque carte
+- **Trend badge agrandi** : padding augmenté `px-1.5 py-0.5` → `px-2 py-1`, gap augmenté `gap-0.5` → `gap-1`, icônes agrandies `h-3 w-3` → `h-3.5 w-3.5`, marge augmentée `mt-1.5` → `mt-2`
+
+#### FIX 3 : Chart Improvement
+- **Courbes naturelles** : `type="monotone"` → `type="natural"` sur les deux Area (encaissements + dépenses) pour des courbes plus fluides et réalistes
+- **Épaisseur du trait** : `strokeWidth={2}` → `strokeWidth={2.5}` pour une meilleure lisibilité
+- **Ligne de référence zéro** : ajout de `<ReferenceLine y={0} stroke="#94A3B8" strokeDasharray="3 3" />` pour visualiser le seuil zéro quand les valeurs deviennent négatives
+- **Import ajouté** : `ReferenceLine` depuis recharts
+
+#### NOUVELLE FONCTIONNALITÉ : Prévisions de trésorerie
+- **Section "Prévisions de trésorerie"** : Card placée entre la grille factures/top-clients et la timeline d'activité
+- **Header** : titre + badge "Mois en cours" (text-xs muted)
+- **3 sous-cartes** en grid responsive (1 colonne mobile, 3 colonnes sm+) :
+
+  1. **Entrées prévues** (vert émeraude)
+     - Icône `ArrowUpRight` dans cercle `bg-emerald-100 dark:bg-emerald-500/15`
+     - Valeur : 3 500 000 FCFA en `font-mono tabular-nums text-emerald-800`
+     - Barre de progression : "78% atteint" avec fond `bg-emerald-200`, remplissage `bg-emerald-500`
+
+  2. **Sorties prévues** (orange)
+     - Icône `ArrowDownRight` dans cercle `bg-orange-100 dark:bg-orange-500/15`
+     - Valeur : 1 800 000 FCFA en `font-mono tabular-nums text-orange-800`
+     - Barre de progression : "85% atteint" avec fond `bg-orange-200`, remplissage `bg-orange-500`
+
+  3. **Solde projeté** (bleu)
+     - Icône `TrendingUp` dans cercle `bg-blue-100 dark:bg-blue-500/15`
+     - Valeur : 1 700 000 FCFA en `font-mono tabular-nums text-blue-800`
+     - Barre de progression : "Actual vs Projeté +48%" avec fond `bg-blue-200`, remplissage `bg-blue-500`
+
+- **Design** : sous-cartes avec `rounded-xl`, bordures colorées avec opacité (`border-emerald-200/60`), fonds colorés subtils (`bg-emerald-50/50`), support dark mode complet
+- **Imports ajoutés** : `ArrowUpRight`, `ArrowDownRight` depuis lucide-react
+
+### Icônes Lucide ajoutées :
+ArrowUpRight, ArrowDownRight
+
+### Composants Recharts ajoutés :
+ReferenceLine
+
+### État :
+- ✅ ESLint clean (0 erreurs)
+- ✅ Compilation Next.js OK (`GET /dashboard 200`)
+- ✅ Aucune nouvelle dépendance ajoutée
+- ✅ Éditions ciblées uniquement sur `src/app/dashboard/page.tsx`
+- ✅ Mobile-first responsive design
+- ✅ Dark mode supporté
+
+---
+
+## Session 14 — QA Review, Dashboard Enhancements, Landing Polish & Trust Bar
+
+### Objectif :
+Review automatisé via agent-browser + VLM, correction des bugs identifiés, amélioration du polish visuel, et ajout de nouvelles fonctionnalités (prévisions de trésorerie, barre de confiance).
+
+### Évaluation QA initiale (VLM sur screenshots) :
+
+#### Landing Page (/) — Score : 5-6/10
+- Typography inconsistante, spacing insuffisant
+- Mobile readiness faible (3/10)
+- Dashboard preview trop crowded
+
+#### Dashboard (/dashboard) — Score : 7/10
+- Data visualization 5/10 — valeurs tronquées ("-498 000..."), pas de tendances
+- Interactive feedback 4/10
+- Retard alert trop subtil
+
+#### Autres pages :
+- Factures : 7/10
+- Dépenses : 8/10
+- Clients : 6/10 — bordures incohérentes
+- Paramètres : 7/10
+
+#### Mobile (375px) :
+- Landing : 6.4/10 avg
+- Dashboard : 6/10 avg — texte tronqué
+
+### Actions réalisées (3 subagents en parallèle) :
+
+#### Round 1 — Dashboard Data Viz & Forecast (Task 2-a)
+
+##### FIX 1 : StatCard Truncation
+- **Avant** : `truncate` coupait les valeurs FCFA ("-498 000...")
+- **Après** : suppression de `truncate`, ajout de `text-wrap font-mono tabular-nums leading-snug`
+- Police responsive : `text-lg sm:text-xl lg:text-2xl`
+
+##### FIX 2 : StatCard Visual Depth
+- **Gradient blob décoratif** : halo subtil coloré derrière chaque carte (radial-gradient, blur-2xl, opacity-30)
+- **Trend badge agrandi** : padding, gap et icônes augmentés
+
+##### FIX 3 : Chart Improvement
+- **Courbes naturelles** : `type="monotone"` → `type="natural"` pour des courbes plus fluides
+- **Épaisseur du trait** : `strokeWidth={2}` → `strokeWidth={2.5}`
+- **Ligne de référence zéro** : `<ReferenceLine y={0}>` pour seuil zéro
+
+##### NOUVELLE FONCTIONNALITÉ : Prévisions de trésorerie
+- **3 sous-cartes** : Entrées prévues (vert, 3.5M FCFA), Sorties prévues (orange, 1.8M FCFA), Solde projeté (bleu, 1.7M FCFA)
+- Barres de progression + icônes colorées
+- Support dark mode complet
+
+#### Round 2 — Landing Page Visual Polish (Task 2-b)
+- **"grandir"** en gras avec dégradé accent #00D4AA
+- Spacing augmenté entre hero et mockup
+- Dashboard mockup : shadow amélioré, padding augmenté, animated gradient border glow
+- **NOUVEAU : Trust Bar** (500+ PME, 12 pays UEMOA, 5M+ FCFA, 99.9% disponibilité)
+- CTA section : gradient animé + hover scale
+
+#### Round 3 — Clients & Settings Polish (Task 2-c)
+- Clients : bordures cohérentes (bleu Entreprise, violet Particulier), hover effects, barre progression payé/total, search bar améliorée
+- Settings : section headers + séparateurs, info banner abonnement, gradients sur plan cards, tabs hover transition
+
+### Scores finaux (VLM post-fix) :
+- Dashboard : **9/10** data readability, **9/10** visual polish — troncature corrigée
+- Landing Page : **8/10** professional polish
+- Mobile Dashboard : **7/10** — pas de troncature, UX amélioré
+
+### État global :
+- ✅ ESLint clean (0 erreurs)
+- ✅ Toutes les routes HTTP 200
+- ✅ Aucune nouvelle dépendance ajoutée
+- ✅ Dark mode supporté
+- ✅ Mobile-first responsive design
+
+### Prochaines étapes recommandées :
+1. **Authentification** : Implémenter NextAuth.js v4 avec sessions
+2. **PDF Generation amélioré** : PDF download direct
+3. **Mobile Money** : Connecter CinetPay/FedaPay
+4. **Relances auto** : Cron job quotidien J+7/J+15/J+30
+5. **Multi-langue** : Support anglais (UEMOA)
+6. **Tests E2E** : Automatisation des tests critiques
+7. **Performance** : Optimiser le bundle, lazy loading

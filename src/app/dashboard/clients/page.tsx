@@ -308,13 +308,13 @@ export default function ClientsPage() {
       </div>
 
       {/* Search */}
-      <div className="relative">
+      <div className="relative focus-within:border-[#00D4AA] rounded-lg border input-wrapper">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Rechercher un client..."
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className={cn("pl-9 h-10 pr-9", search && "pr-9")}
+          className={cn("pl-9 h-12 pr-9 text-base border-0 focus-visible:ring-0", search && "pr-9")}
         />
         {search && (
           <button
@@ -359,10 +359,10 @@ export default function ClientsPage() {
                   href={`/dashboard/clients/${client.id}`}
                 >
                   <Card className={cn(
-                    "hover:shadow-md transition-shadow h-full border-l-4",
+                    "hover:shadow-md transition-all duration-200 h-full border-l-4 cursor-pointer",
                     client.type === "ENTREPRISE"
                       ? "border-l-blue-500"
-                      : "border-l-gray-300 dark:border-l-gray-600"
+                      : "border-l-[#8B5CF6]"
                   )}>
                     <CardContent className="p-4 flex flex-col h-full">
                       <div className="flex items-start gap-3 mb-3">
@@ -433,11 +433,17 @@ export default function ClientsPage() {
                           <p className="text-sm font-bold mt-0.5">
                             {formatCurrency(client.totalFacture)}
                           </p>
+                          <div className="mt-1.5 h-1 w-full bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-emerald-500"
+                              style={{ width: `${client.totalFacture > 0 ? Math.round((client.totalPaye / client.totalFacture) * 100) : 0}%` }}
+                            />
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
                             <p className="text-[10px] text-muted-foreground">Payé</p>
-                            <p className="text-sm font-medium text-emerald-600 mt-0.5">
+                            <p className="text-sm font-medium text-emerald-600 font-mono mt-0.5">
                               {formatCurrency(client.totalPaye)}
                             </p>
                           </div>

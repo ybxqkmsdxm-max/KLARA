@@ -17,6 +17,10 @@ import {
   BarChart3,
   Send,
   CreditCard,
+  Building2,
+  Globe,
+  CircleDollarSign,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -155,12 +159,23 @@ function Hero() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
-                faites grandir votre business.
+                faites{" "}
+                <span
+                  className="font-black"
+                  style={{
+                    background: "linear-gradient(135deg, #00D4AA 0%, #009B7D 40%, #00B894 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  grandir
+                </span>{" "}
+                votre business.
               </span>
             </h1>
 
             {/* Sous-titre */}
-            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground/90 mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               Klara simplifie la facturation, le suivi des dépenses et les relances clients
               pour les PME sans comptable. Payez et encaissez en Mobile Money.
             </p>
@@ -215,8 +230,10 @@ function Hero() {
           </div>
 
           {/* Colonne visuelle — Mockup dashboard */}
-          <div className="relative animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
-            <div className="relative bg-card rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-700 p-4 md:p-6 overflow-hidden scale-[0.85] sm:scale-100 origin-top">
+          <div className="relative animate-fade-in-up mt-12 lg:mt-16" style={{ animationDelay: "0.5s" }}>
+            {/* Animated gradient border */}
+            <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-br from-[#00D4AA]/30 via-[#00E8BC]/10 to-[#00B894]/30 animate-pulse -z-10" style={{ animationDuration: "4s" }} />
+            <div className="relative bg-card rounded-2xl shadow-2xl shadow-black/5 border border-slate-200/60 dark:border-slate-700 p-4 md:p-6 overflow-hidden scale-[0.85] sm:scale-100 origin-top">
               {/* Faux header */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex gap-1.5">
@@ -237,7 +254,7 @@ function Hero() {
                     { label: "En retard", value: "295 000", color: "bg-red-50 text-red-700 border-red-100" },
                     { label: "Dépenses", value: "1 245 000", color: "bg-slate-50 text-slate-700 border-slate-100" },
                   ].map((stat) => (
-                    <div key={stat.label} className={`${stat.color} border rounded-xl p-3.5`}>
+                    <div key={stat.label} className={`${stat.color} border rounded-xl p-4`}>
                       <p className="text-xs font-medium opacity-70">{stat.label}</p>
                       <p className="text-lg font-bold mt-0.5">{stat.value} <span className="text-xs font-semibold opacity-70">FCFA</span></p>
                     </div>
@@ -450,7 +467,7 @@ function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, i) => (
             <div key={i} className="group relative rounded-2xl">
               <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-br from-[#00D4AA] to-[#00B894] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -741,6 +758,47 @@ function PricingSection() {
 }
 
 /* ============================================================
+   SECTION: Trust Bar
+   ============================================================ */
+function TrustBarSection() {
+  const indicators = [
+    { icon: <Building2 className="w-5 h-5" />, value: "500+", label: "PME" },
+    { icon: <Globe className="w-5 h-5" />, value: "12", label: "pays UEMOA" },
+    { icon: <CircleDollarSign className="w-5 h-5" />, value: "5M+", label: "FCFA traités" },
+    { icon: <ShieldCheck className="w-5 h-5" />, value: "99.9%", label: "disponibilité" },
+  ];
+
+  return (
+    <section className="py-10 md:py-14">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-muted/40 border border-border/50 rounded-2xl p-6 md:p-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+            {indicators.map((item, i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center text-center gap-2"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#00D4AA]/10 text-[#00D4AA] flex items-center justify-center">
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-[#1A1A2E] font-[var(--font-plus-jakarta)]">
+                    {item.value}
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                    {item.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
    SECTION: Témoignages
    ============================================================ */
 function TestimonialsSection() {
@@ -827,7 +885,7 @@ function FinalCTA() {
   return (
     <section className="py-14 md:py-28">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00B894] rounded-3xl p-8 md:p-16 text-center overflow-hidden animate-gradient-bg">
+        <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00D4AA] rounded-3xl p-8 md:p-16 text-center overflow-hidden animate-gradient-bg shadow-2xl shadow-[#00D4AA]/15">
           {/* Pattern décoratif */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-40 h-40 border border-white rounded-full -translate-x-1/2 -translate-y-1/2" />
@@ -854,7 +912,7 @@ function FinalCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full hover:bg-[#1A1A2E]/10"
+                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full hover:bg-[#1A1A2E]/10 transition-all hover:scale-105"
               >
                 Sans carte bancaire
               </Button>
@@ -951,6 +1009,7 @@ export default function KlaraLandingPage() {
       <FeaturesSection />
       <HowItWorksSection />
       <PricingSection />
+      <TrustBarSection />
       <TestimonialsSection />
       <FinalCTA />
       <Footer />
