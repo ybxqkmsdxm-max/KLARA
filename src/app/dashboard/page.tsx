@@ -28,6 +28,7 @@ import {
   UserPlus,
   Receipt,
   BarChart3,
+  Download,
 } from "lucide-react";
 import {
   AreaChart,
@@ -108,17 +109,19 @@ function StatCard({
               <>
                 <p className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</p>
                 {trend !== undefined && (
-                  <div className="flex items-center gap-1 mt-1.5">
-                    {trend >= 0 ? (
-                      <ChevronUp className="h-3.5 w-3.5 text-emerald-500" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5 text-red-500" />
-                    )}
+                  <div className="mt-1.5">
                     <span
-                      className={`text-xs font-medium ${
-                        trend >= 0 ? "text-emerald-600" : "text-red-600"
+                      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                        trend >= 0
+                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                          : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
                       }`}
                     >
+                      {trend >= 0 ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
                       {trend >= 0 ? "+" : ""}
                       {trend}% {trendLabel}
                     </span>
@@ -242,24 +245,28 @@ const quickActions = [
     description: "Créer et envoyer",
     href: "/dashboard/factures/nouvelle",
     icon: FileText,
+    color: "border-l-[#00D4AA]",
   },
   {
     label: "Nouveau devis",
     description: "Générer un devis",
     href: "/dashboard/devis/nouveau",
     icon: FileSpreadsheet,
+    color: "border-l-[#3B82F6]",
   },
   {
     label: "Ajouter client",
     description: "Ajouter un contact",
     href: "/dashboard/clients",
     icon: UserPlus,
+    color: "border-l-[#8B5CF6]",
   },
   {
     label: "Nouvelle dépense",
     description: "Enregistrer une dépense",
     href: "/dashboard/depenses",
     icon: Receipt,
+    color: "border-l-[#FFB347]",
   },
 ];
 
@@ -283,7 +290,7 @@ function QuickActionsRow() {
             href={action.href}
             className="flex-shrink-0 w-40 lg:w-auto snap-start"
           >
-            <Card className="group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-border/50 hover:border-border h-full">
+            <Card className={`group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-border/50 hover:border-border h-full border-l-4 ${action.color}`}>
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-600 transition-transform duration-200 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
@@ -319,6 +326,27 @@ export default function DashboardPage() {
     setShowWelcome(false);
     sessionStorage.setItem("klara-welcome-dismissed", "true");
   }, []);
+
+  const handleExportCSV = useCallback(() => {
+    if (!stats?.recentInvoices) return;
+    const headers = ["Numéro", "Client", "Montant (FCFA)", "Statut", "Date d'émission", "Date d'échéance"];
+    const rows = stats.recentInvoices.map((inv) => [
+      inv.number,
+      inv.clientName,
+      inv.total.toString(),
+      getInvoiceStatusLabel(inv.status),
+      inv.issueDate,
+      inv.dueDate,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `factures_klara_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [stats]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -441,11 +469,13 @@ export default function DashboardPage() {
       {/* Chart + Taux recouvrement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Flux trésorerie chart */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 relative overflow-hidden shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.2)]">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Flux de trésorerie</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
+            {/* Gradient overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent pointer-events-none z-10 rounded-b-lg" />
             {loading ? (
               <Skeleton className="h-[280px] w-full" />
             ) : (
@@ -546,12 +576,23 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base font-semibold">Factures récentes</CardTitle>
-            <Link
-              href="/dashboard/factures"
-              className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"
-            >
-              Voir tout <ArrowRight className="h-3 w-3" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportCSV}
+                className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1.5"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Exporter
+              </Button>
+              <Link
+                href="/dashboard/factures"
+                className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"
+              >
+                Voir tout <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
           </CardHeader>
           <CardContent className="p-0 pb-2">
             {loading ? (
@@ -692,7 +733,7 @@ export default function DashboardPage() {
               const { icon: ActIcon, color: actColor } = iconMap[activity.type];
               const isLast = idx === activities.length - 1;
               return (
-                <div key={activity.id} className="relative flex gap-4">
+                <div key={activity.id} className="relative flex gap-4 group/timeline">
                   {/* Timeline line + dot */}
                   <div className="flex flex-col items-center">
                     <div
@@ -706,7 +747,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   {/* Content */}
-                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"}`}>
+                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"} -mx-2 px-2 rounded-lg transition-colors group-hover/timeline:bg-muted/40`}>
                     <p className="text-sm font-medium">{activity.message}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">{activity.detail}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">{activity.time}</p>

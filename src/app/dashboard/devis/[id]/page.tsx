@@ -41,6 +41,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Hash,
+  Loader2,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -333,7 +334,7 @@ export default function DevisDetailPage() {
               className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium"
             >
               {converting ? (
-                <CheckCircle className="h-4 w-4 mr-1.5 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               ) : (
                 <ArrowRightLeft className="h-4 w-4 mr-1.5" />
               )}

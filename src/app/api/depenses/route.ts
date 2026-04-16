@@ -34,12 +34,21 @@ export async function GET(request: Request) {
       return acc;
     }, {} as Record<string, number>);
 
-    const totalMois = depenses.reduce((s, e) => s + e.amount, 0);
+    const totalGlobal = allExpenses.reduce((s, e) => s + e.amount, 0);
+
+    // Calcul du total du mois en cours
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const expensesThisMonth = allExpenses.filter(
+      (e) => e.date >= firstDayOfMonth && e.date <= lastDayOfMonth
+    );
+    const totalMois = expensesThisMonth.reduce((s, e) => s + e.amount, 0);
 
     return NextResponse.json({
       depenses,
       total, page, totalPages: Math.ceil(total / limit),
-      stats: { totalMois, totalParCategorie, totalGlobal: allExpenses.reduce((s, e) => s + e.amount, 0) },
+      stats: { totalMois, totalParCategorie, totalGlobal },
     });
   } catch (error) {
     console.error("Erreur dépenses:", error);

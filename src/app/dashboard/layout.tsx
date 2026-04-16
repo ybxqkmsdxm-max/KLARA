@@ -251,7 +251,7 @@ function NavContent({
                   )}
                   <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
                   {item.badge && (
-                    <span className={cn("absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white" : "bg-muted text-muted-foreground")}>
+                    <span className={cn("absolute -bottom-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white" : "bg-muted text-muted-foreground")}>
                       {item.badge}
                     </span>
                   )}
@@ -479,9 +479,9 @@ export default function DashboardLayout({
                 {pageTitle}
               </h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
               {/* Search command palette trigger */}
-              <CommandPaletteTrigger />
+              <CommandPaletteTrigger className="h-8 w-8 sm:h-9 sm:w-9" />
               {/* Notification bell - mobile (Sheet) */}
               <div className="lg:hidden">
                 <NotificationBellSheet />
@@ -513,12 +513,12 @@ export default function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">
+          <div className="flex-1 p-4 lg:p-6 pb-20 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-6">
             <PageTransition>{children}</PageTransition>
           </div>
 
           {/* Mobile bottom navigation */}
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-area-pb">
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border pb-[env(safe-area-inset-bottom)]">
             <div className="flex items-center justify-around h-16 px-2">
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
@@ -531,12 +531,12 @@ export default function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
+                      "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 active:scale-95 relative",
                       isActive ? "text-[#00D4AA]" : "text-muted-foreground"
                     )}
                   >
-                    <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
-                    <span className="text-[10px] font-medium">{item.label}</span>
+                    <Icon className={cn("h-5 w-5 transition-transform duration-200", isActive ? "text-[#00D4AA] scale-110" : "text-muted-foreground")} />
+                    <span className={cn("text-[10px] font-medium transition-colors", isActive && "text-[#00D4AA]")}>{item.label}</span>
                     {isActive && (
                       <span className="absolute top-0 w-8 h-0.5 bg-[#00D4AA] rounded-b-full" />
                     )}

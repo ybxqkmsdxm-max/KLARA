@@ -152,7 +152,7 @@ function Hero() {
             </div>
 
             {/* Titre */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
                 faites grandir votre business.
@@ -452,12 +452,11 @@ function FeaturesSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
-            <Card
-              key={i}
-              className="border-slate-200 bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden rounded-2xl"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              <CardContent className="p-6 md:p-8 relative">
+            <div key={i} className="group relative rounded-2xl">
+              <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-br from-[#00D4AA] to-[#00B894] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <Card className="relative border-slate-200 dark:border-slate-700 bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-2xl z-[1]">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <CardContent className="p-6 md:p-8 relative z-10">
                 <div
                   className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 ${feature.color}`}
                 >
@@ -471,7 +470,69 @@ function FeaturesSection() {
                 </p>
               </CardContent>
             </Card>
+            </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   SECTION: Animated Counter Stats
+   ============================================================ */
+function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          const start = performance.now();
+          const step = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * target));
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration, hasAnimated]);
+
+  return (
+    <div ref={ref} className="text-3xl sm:text-4xl font-extrabold text-[#1A1A2E] tabular-nums">
+      {count.toLocaleString("fr-FR")}{suffix}
+    </div>
+  );
+}
+
+function StatsSection() {
+  return (
+    <section className="py-12 md:py-16 border-y border-border/50 bg-muted/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12">
+          <div className="text-center">
+            <AnimatedCounter target={2500} suffix="+" />
+            <p className="text-sm text-muted-foreground mt-2 font-medium">PME qui nous font confiance</p>
+          </div>
+          <div className="text-center">
+            <AnimatedCounter target={15} suffix="M+" />
+            <p className="text-sm text-muted-foreground mt-2 font-medium">FCFA traités chaque mois</p>
+          </div>
+          <div className="text-center">
+            <AnimatedCounter target={98} suffix="%" />
+            <p className="text-sm text-muted-foreground mt-2 font-medium">Taux de satisfaction</p>
+          </div>
         </div>
       </div>
     </section>
@@ -766,7 +827,7 @@ function FinalCTA() {
   return (
     <section className="py-14 md:py-28">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-gradient-to-br from-[#00D4AA] to-[#00B894] rounded-3xl p-8 md:p-16 text-center overflow-hidden">
+        <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00B894] rounded-3xl p-8 md:p-16 text-center overflow-hidden animate-gradient-bg">
           {/* Pattern décoratif */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-40 h-40 border border-white rounded-full -translate-x-1/2 -translate-y-1/2" />
@@ -885,6 +946,7 @@ export default function KlaraLandingPage() {
     <main className="min-h-screen overflow-x-hidden">
       <Navbar />
       <Hero />
+      <StatsSection />
       <ProblemSection />
       <FeaturesSection />
       <HowItWorksSection />

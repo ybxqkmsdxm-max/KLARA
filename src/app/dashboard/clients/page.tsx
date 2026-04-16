@@ -36,6 +36,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Download,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -170,13 +171,39 @@ export default function ClientsPage() {
             {total} client{total > 1 ? "s" : ""} au total
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Nouveau client
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={loading || clients.length === 0}
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/export?type=clients&format=csv");
+                if (!res.ok) throw new Error();
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "klara-clients.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("Export des clients téléchargé");
+              } catch {
+                toast.error("Erreur lors de l'export");
+              }
+            }}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium">
+                <Plus className="h-4 w-4 mr-1.5" />
+                Nouveau client
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-lg">Nouveau client</DialogTitle>
@@ -258,7 +285,8 @@ export default function ClientsPage() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Type tabs */}
@@ -336,7 +364,7 @@ export default function ClientsPage() {
                       ? "border-l-blue-500"
                       : "border-l-gray-300 dark:border-l-gray-600"
                   )}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 flex flex-col h-full">
                       <div className="flex items-start gap-3 mb-3">
                         <div
                           className={cn(

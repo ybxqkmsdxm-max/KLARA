@@ -16,7 +16,10 @@ import {
   ChevronUp,
   ChevronDown,
   Filter,
+  Download,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency, formatDateShort, getInvoiceStatusLabel } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +67,7 @@ export default function FacturesPage() {
   const [activeTab, setActiveTab] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const fetchFactures = useCallback(async () => {
     try {
@@ -113,15 +117,49 @@ export default function FacturesPage() {
             {total} facture{total > 1 ? "s" : ""} au total
           </p>
         </div>
-        <Button
-          asChild
-          className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium"
-        >
-          <Link href="/dashboard/factures/nouvelle">
-            <Plus className="h-4 w-4 mr-1.5" />
-            Nouvelle facture
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={exporting || factures.length === 0}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const res = await fetch("/api/export?type=factures&format=csv");
+                if (!res.ok) throw new Error();
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "klara-factures.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("Export des factures téléchargé");
+              } catch {
+                toast.error("Erreur lors de l'export");
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+          <Button
+            asChild
+            className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium"
+          >
+            <Link href="/dashboard/factures/nouvelle">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Nouvelle facture
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Status tabs */}
@@ -183,7 +221,7 @@ export default function FacturesPage() {
             {filteredFactures.length > 0 ? (
               filteredFactures.map((facture) => (
                 <Link key={facture.id} href={`/dashboard/factures/${facture.id}`}>
-                  <Card className="hover:shadow-md active:scale-[0.98] transition-all duration-200">
+                  <Card className="hover:shadow-md active:scale-[0.98] active:border-[#00D4AA]/30 transition-all duration-200">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>

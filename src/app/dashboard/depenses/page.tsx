@@ -59,6 +59,7 @@ import {
   Trash2,
   Filter,
   SearchX,
+  Download,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -339,13 +340,39 @@ export default function DepensesPage() {
             Suivez et gérez vos dépenses
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Nouvelle dépense
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={loading || depenses.length === 0}
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/export?type=depenses&format=csv");
+                if (!res.ok) throw new Error();
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "klara-depenses.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("Export des dépenses téléchargé");
+              } catch {
+                toast.error("Erreur lors de l'export");
+              }
+            }}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium">
+                <Plus className="h-4 w-4 mr-1.5" />
+                Nouvelle dépense
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-lg">Nouvelle dépense</DialogTitle>
@@ -428,7 +455,8 @@ export default function DepensesPage() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {error && (

@@ -126,6 +126,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   * {
     @apply border-border outline-ring/50;
   }
@@ -197,4 +200,13 @@
 }
 .animate-count-up {
   animation: count-up 0.4s ease-out forwards;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient-bg {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
 }
