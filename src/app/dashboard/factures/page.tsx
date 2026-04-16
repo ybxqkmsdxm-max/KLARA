@@ -18,6 +18,7 @@ import {
   Filter,
   Download,
   Loader2,
+  SearchX,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency, formatDateShort, getInvoiceStatusLabel } from "@/lib/formatters";
@@ -271,22 +272,35 @@ export default function FacturesPage() {
             ) : (
               <div className="text-center py-16">
                 <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="9" y1="15" x2="15" y2="15" />
-                    <line x1="9" y1="11" x2="13" y2="11" />
-                  </svg>
+                  {activeTab || search ? (
+                    <SearchX className="w-10 h-10 text-muted-foreground/40" />
+                  ) : (
+                    <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="9" y1="15" x2="15" y2="15" />
+                      <line x1="9" y1="11" x2="13" y2="11" />
+                    </svg>
+                  )}
                 </div>
                 <p className="text-sm font-semibold text-muted-foreground">
                   Aucune facture trouvée
                 </p>
                 <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs mx-auto">
                   {activeTab || search
-                    ? "Essayez de modifier vos filtres ou votre recherche."
+                    ? "Vérifiez vos filtres ou votre recherche."
                     : "Créez votre première facture pour commencer à facturer vos clients."}
                 </p>
-                {activeTab === "" && search === "" && (
+                {(activeTab || search) ? (
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => { setActiveTab(""); setSearch(""); }}
+                  >
+                    <Filter className="h-4 w-4 mr-1.5" />
+                    Réinitialiser les filtres
+                  </Button>
+                ) : activeTab === "" && search === "" && (
                   <Button
                     asChild
                     className="mt-4 bg-[#00D4AA] hover:bg-[#00C19C] text-white"
@@ -376,22 +390,35 @@ export default function FacturesPage() {
                       <tr>
                         <td colSpan={6} className="px-4 py-16 text-center">
                           <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center">
-                            <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                              <polyline points="14 2 14 8 20 8" />
-                              <line x1="9" y1="15" x2="15" y2="15" />
-                              <line x1="9" y1="11" x2="13" y2="11" />
-                            </svg>
+                            {activeTab || search ? (
+                              <SearchX className="w-10 h-10 text-muted-foreground/40" />
+                            ) : (
+                              <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="9" y1="15" x2="15" y2="15" />
+                                <line x1="9" y1="11" x2="13" y2="11" />
+                              </svg>
+                            )}
                           </div>
                           <p className="text-sm font-semibold text-muted-foreground">
                             Aucune facture trouvée
                           </p>
                           <p className="text-xs text-muted-foreground/70 mt-1">
                             {activeTab || search
-                              ? "Essayez de modifier vos filtres ou votre recherche."
+                              ? "Vérifiez vos filtres ou votre recherche."
                               : "Créez votre première facture pour commencer à facturer vos clients."}
                           </p>
-                          {activeTab === "" && search === "" && (
+                          {(activeTab || search) ? (
+                            <Button
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() => { setActiveTab(""); setSearch(""); }}
+                            >
+                              <Filter className="h-4 w-4 mr-1.5" />
+                              Réinitialiser les filtres
+                            </Button>
+                          ) : activeTab === "" && search === "" && (
                             <Button
                               asChild
                               className="mt-4 bg-[#00D4AA] hover:bg-[#00C19C] text-white"

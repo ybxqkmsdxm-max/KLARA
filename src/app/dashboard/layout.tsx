@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Users,
   Wallet,
+  BarChart3,
   Settings,
   Menu,
   Plus,
@@ -47,6 +48,7 @@ const navItems = [
   { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
   { href: "/dashboard/clients", label: "Clients", icon: Users },
   { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
+  { href: "/dashboard/rapports", label: "Rapports", icon: BarChart3 },
   { href: "/dashboard/parametres", label: "Paramètres", icon: Settings },
 ];
 
@@ -211,6 +213,7 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/dashboard/devis")) return "Devis";
   if (pathname.startsWith("/dashboard/clients")) return "Clients";
   if (pathname.startsWith("/dashboard/depenses")) return "Dépenses";
+  if (pathname.startsWith("/dashboard/rapports")) return "Rapports";
   if (pathname.startsWith("/dashboard/parametres")) return "Paramètres";
   return "Klara";
 }

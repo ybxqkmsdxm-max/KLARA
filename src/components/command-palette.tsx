@@ -8,6 +8,7 @@ import {
   Users,
   ClipboardList,
   Wallet,
+  BarChart3,
   Settings,
   Plus,
   UserPlus,
@@ -72,6 +73,13 @@ const navigationItems: PaletteItem[] = [
     href: "/dashboard/depenses",
     icon: Wallet,
     keywords: ["expenses", "charges", "coûts", "dépense", "budget"],
+  },
+  {
+    id: "rapports",
+    label: "Rapports",
+    href: "/dashboard/rapports",
+    icon: BarChart3,
+    keywords: ["reports", "analytics", "statistiques", "analyses", "graphiques", "chiffres"],
   },
   {
     id: "parametres",

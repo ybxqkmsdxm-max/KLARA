@@ -110,12 +110,12 @@ function StatCard({
       <CardContent className="p-4 lg:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-xs lg:text-sm text-muted-foreground font-medium">{title}</p>
+            <p className="text-xs lg:text-sm text-muted-foreground font-semibold">{title}</p>
             {loading ? (
               <Skeleton className="h-8 w-28 mt-2" />
             ) : (
               <>
-                <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 text-wrap font-mono tabular-nums leading-snug">{value}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 break-words font-mono tabular-nums leading-snug">{value}</p>
                 {trend !== undefined && (
                   <div className="mt-2">
                     <span
@@ -403,9 +403,9 @@ export default function DashboardPage() {
       {/* Alert factures en retard */}
       {!loading && stats && stats.factures.enRetard > 0 && (
         <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5 border-l-4 border-l-[#FF6B6B] px-4">
-          <AlertTriangle className="h-4 w-4 text-[#FF6B6B] self-center" />
-          <AlertDescription className="text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span>
+          <AlertTriangle className="h-4 w-4 text-[#FF6B6B] self-center shrink-0" />
+          <AlertDescription className="text-sm flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-x-2">
+            <span className="break-words">
               <span className="font-semibold text-[#FF6B6B]">
                 {stats.factures.enRetard} facture{stats.factures.enRetard > 1 ? "s" : ""} en retard
               </span>
@@ -416,7 +416,7 @@ export default function DashboardPage() {
             </span>
             <Link
               href="/dashboard/factures"
-              className="text-[#FF6B6B] hover:underline font-medium ml-auto"
+              className="text-[#FF6B6B] hover:underline font-medium sm:ml-auto shrink-0"
             >
               Voir les factures →
             </Link>

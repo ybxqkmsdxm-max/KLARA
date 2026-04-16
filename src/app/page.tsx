@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
   FileText,
   Wallet,
@@ -533,25 +534,122 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: num
   );
 }
 
-function StatsSection() {
+/* ============================================================
+   SECTION: Trust Bar — Animated counters with framer-motion
+   ============================================================ */
+function TrustStatItem({ icon, target, suffix, label, sublabel }: {
+  icon: React.ReactNode;
+  target: number;
+  suffix: string;
+  label: string;
+  sublabel?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) return;
+    const start = performance.now();
+    const duration = 2200;
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [isInView, target]);
+
   return (
-    <section className="py-12 md:py-16 border-y border-border/50 bg-gradient-to-r from-muted/30 via-[#00D4AA]/[0.03] to-muted/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12">
-          <div className="text-center relative">
-            <AnimatedCounter target={2500} suffix="+" />
-            <p className="text-sm text-muted-foreground mt-2 font-medium">PME qui nous font confiance</p>
-            <div className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-border/60" />
-          </div>
-          <div className="text-center relative">
-            <AnimatedCounter target={15} suffix="M+" />
-            <p className="text-sm text-muted-foreground mt-2 font-medium">FCFA traités chaque mois</p>
-            <div className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-border/60" />
-          </div>
-          <div className="text-center">
-            <AnimatedCounter target={98} suffix="%" />
-            <p className="text-sm text-muted-foreground mt-2 font-medium">Taux de satisfaction</p>
-          </div>
+    <div ref={ref} className="flex flex-col items-center text-center gap-3">
+      <motion.div
+        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#00D4AA]/10 text-[#00D4AA] flex items-center justify-center"
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={isInView ? { scale: 1, opacity: 1 } : {}}
+        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+      >
+        {icon}
+      </motion.div>
+      <div>
+        <motion.p
+          className="text-3xl sm:text-4xl font-extrabold text-[#1A1A2E] tabular-nums font-[var(--font-plus-jakarta)]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          {displayed.toLocaleString("fr-FR")}{suffix}
+        </motion.p>
+        <motion.p
+          className="text-sm sm:text-base font-semibold text-[#1A1A2E] mt-0.5"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.35, duration: 0.5 }}
+        >
+          {label}
+        </motion.p>
+        {sublabel && (
+          <motion.p
+            className="text-xs text-muted-foreground mt-0.5"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.45, duration: 0.5 }}
+          >
+            {sublabel}
+          </motion.p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatsSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-80px" });
+
+  return (
+    <section ref={sectionRef} className="py-14 md:py-20 bg-muted/30 relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#00D4AA]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-[#1A1A2E]/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          className="text-center mb-10 md:mb-14"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <p className="text-sm sm:text-base font-medium text-[#00D4AA] mb-2 tracking-wide uppercase">Rejoint par des entreprises dans toute l&apos;UEMOA</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#1A1A2E] font-[var(--font-plus-jakarta)]">Ils nous font confiance</h2>
+        </motion.div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
+          <TrustStatItem
+            icon={<Building2 className="w-6 h-6 sm:w-7 sm:h-7" />}
+            target={250}
+            suffix="+"
+            label="entreprises actives"
+          />
+          <TrustStatItem
+            icon={<FileText className="w-6 h-6 sm:w-7 sm:h-7" />}
+            target={15000}
+            suffix="+"
+            label="factures générées"
+          />
+          <TrustStatItem
+            icon={<Globe className="w-6 h-6 sm:w-7 sm:h-7" />}
+            target={5}
+            suffix="+"
+            label="pays couverts"
+            sublabel="Togo, Bénin, Burkina, Mali, Sénégal"
+          />
+          <TrustStatItem
+            icon={<Shield className="w-6 h-6 sm:w-7 sm:h-7" />}
+            target={99}
+            suffix=".9%"
+            label="disponibilité"
+          />
         </div>
       </div>
     </section>
@@ -712,11 +810,20 @@ function PricingSection() {
                   : "border-slate-200 hover:shadow-lg hover:-translate-y-1"
               }`}
             >
+              {/* Corner ribbon — Recommandé */}
+              {plan.popular && (
+                <div className="absolute top-4 right-4 z-20">
+                  <span className="inline-flex items-center gap-1 bg-[#FFB347] text-[#1A1A2E] text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
+                    <Star className="w-3 h-3 fill-[#1A1A2E] text-[#1A1A2E]" />
+                    Recommandé
+                  </span>
+                </div>
+              )}
               {plan.popular && (
                 <>
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-5 py-1.5 text-sm shadow-lg shadow-[#00D4AA]/30 animate-pulse" style={{ animationDuration: "3s" }}>
-                      ✨ Populaire
+                    <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-6 py-1.5 text-sm shadow-lg shadow-[#00D4AA]/30">
+                      ✨ Plus populaire
                     </Badge>
                   </div>
                   {/* Shimmer border effect */}
@@ -953,8 +1060,8 @@ function Footer() {
               <span className="text-2xl font-extrabold text-white">K</span>
               <span className="text-2xl font-semibold text-[#00D4AA]">lara</span>
             </div>
-            <p className="text-sm text-white/60 leading-relaxed">
-              La solution de gestion financière pensée pour les PME d&apos;Afrique de l&apos;Ouest.
+            <p className="text-sm text-[#00D4AA]/90 font-medium leading-relaxed">
+              Gestion financière simplifiée pour l&apos;Afrique de l&apos;Ouest
             </p>
           </div>
 
@@ -964,6 +1071,7 @@ function Footer() {
             <ul className="space-y-2.5 text-sm text-white/50">
               <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
               <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Rapports</a></li>
               <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
               <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
             </ul>

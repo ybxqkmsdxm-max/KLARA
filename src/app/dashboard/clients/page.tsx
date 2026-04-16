@@ -38,6 +38,8 @@ import {
   Eye,
   Download,
   CircleDollarSign,
+  SearchX,
+  Filter,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -487,20 +489,44 @@ export default function ClientsPage() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                Aucun client trouvé
-              </p>
-              <p className="text-xs text-muted-foreground mb-4">
-                Ajoutez votre premier client pour commencer
-              </p>
-              <Button
-                className="bg-[#00D4AA] hover:bg-[#00C19C] text-white"
-                onClick={() => setDialogOpen(true)}
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                Nouveau client
-              </Button>
+              {(search || activeType) ? (
+                <>
+                  <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                    <SearchX className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground mb-1">
+                    Aucun client trouvé
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm mx-auto">
+                    Vérifiez vos filtres ou votre recherche.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-0"
+                    onClick={() => { setSearch(""); setActiveType(""); }}
+                  >
+                    <Filter className="h-4 w-4 mr-1.5" />
+                    Réinitialiser les filtres
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-sm font-medium text-muted-foreground mb-2">
+                    Aucun client trouvé
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Ajoutez votre premier client pour commencer
+                  </p>
+                  <Button
+                    className="bg-[#00D4AA] hover:bg-[#00C19C] text-white"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Nouveau client
+                  </Button>
+                </>
+              )}
             </div>
           )}
 

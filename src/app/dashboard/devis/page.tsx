@@ -16,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRightLeft,
+  SearchX,
+  Filter,
 } from "lucide-react";
 import { formatCurrency, formatDateShort, getQuoteStatusLabel } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -267,20 +269,45 @@ export default function DevisPage() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <ClipboardList className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-sm font-medium text-muted-foreground">
-                Aucun devis trouvé
-              </p>
-              {activeTab === "" && search === "" && (
-                <Button
-                  asChild
-                  className="mt-4 bg-[#00D4AA] hover:bg-[#00C19C] text-white"
-                >
-                  <Link href="/dashboard/devis/nouveau">
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Créer votre premier devis
-                  </Link>
-                </Button>
+              {(activeTab || search) ? (
+                <>
+                  <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                    <SearchX className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground mb-1">
+                    Aucun devis trouvé
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm mx-auto">
+                    Vérifiez vos filtres ou votre recherche.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-0"
+                    onClick={() => { setActiveTab(""); setSearch(""); }}
+                  >
+                    <Filter className="h-4 w-4 mr-1.5" />
+                    Réinitialiser les filtres
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <ClipboardList className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Aucun devis trouvé
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mt-1 mb-4">
+                    Créez votre premier devis pour commencer
+                  </p>
+                  <Button
+                    asChild
+                    className="bg-[#00D4AA] hover:bg-[#00C19C] text-white"
+                  >
+                    <Link href="/dashboard/devis/nouveau">
+                      <Plus className="h-4 w-4 mr-1.5" />
+                      Créer votre premier devis
+                    </Link>
+                  </Button>
+                </>
               )}
             </div>
           )}

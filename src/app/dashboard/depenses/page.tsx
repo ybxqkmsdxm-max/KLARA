@@ -611,7 +611,7 @@ export default function DepensesPage() {
                   </div>
 
                   {/* Category filter chips */}
-                  <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  <div className="flex flex-wrap gap-1.5 overflow-x-auto max-h-[400px] overflow-y-auto lg:max-h-[400px] pb-1 scrollbar-none">
                     {filterChips.map((chip) => (
                       <button
                         key={chip.value}
