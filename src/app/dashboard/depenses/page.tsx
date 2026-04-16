@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   PieChart,
   Pie,
   Cell,
@@ -45,6 +55,10 @@ import {
   Landmark,
   Wrench,
   CircleDollarSign,
+  Search,
+  Trash2,
+  Filter,
+  SearchX,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -54,6 +68,8 @@ import {
 } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface Expense {
   id: string;
@@ -69,6 +85,8 @@ interface ExpenseStats {
   totalGlobal: number;
   totalParCategorie: Record<string, number>;
 }
+
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const categoryIcons: Record<string, React.ElementType> = {
   LOYER: Home,
@@ -108,6 +126,37 @@ const categories = [
 
 const paymentMethods = ["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE"];
 
+const filterChips = [
+  { value: "", label: "Tous" },
+  { value: "LOYER", label: "Loyer" },
+  { value: "SALAIRES", label: "Salaires" },
+  { value: "FOURNITURES", label: "Fournitures" },
+  { value: "TRANSPORT", label: "Transport" },
+  { value: "COMMUNICATION", label: "Communication" },
+  { value: "MARKETING", label: "Marketing" },
+  { value: "IMPOTS", label: "Impôts" },
+  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "AUTRE", label: "Autre" },
+];
+
+// ── Custom Tooltip ───────────────────────────────────────────────────────────
+
+function CustomPieTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number } }> }) {
+  if (!active || !payload?.length) return null;
+  const data = payload[0];
+  const totalAll = 0;
+  const pct = totalAll > 0 ? ((data.payload.value / totalAll) * 100).toFixed(1) : "0";
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border p-3 text-sm">
+      <p className="font-medium">{data.payload.name}</p>
+      <p className="text-muted-foreground">{formatCurrency(data.payload.value)}</p>
+      <p className="text-xs text-muted-foreground">{pct}%</p>
+    </div>
+  );
+}
+
+// ── Main Page Component ──────────────────────────────────────────────────────
+
 export default function DepensesPage() {
   const [depenses, setDepenses] = useState<Expense[]>([]);
   const [stats, setStats] = useState<ExpenseStats | null>(null);
@@ -115,6 +164,16 @@ export default function DepensesPage() {
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("");
+  const [activeChip, setActiveChip] = useState("");
+
+  // Delete dialog
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // New expense form
   const [newCategory, setNewCategory] = useState("AUTRE");
@@ -132,7 +191,7 @@ export default function DepensesPage() {
       const data = await res.json();
       setDepenses(data.depenses);
       setStats(data.stats);
-    } catch (err) {
+    } catch {
       setError("Impossible de charger les dépenses");
     } finally {
       setLoading(false);
@@ -142,6 +201,37 @@ export default function DepensesPage() {
   useEffect(() => {
     fetchDepenses();
   }, [fetchDepenses]);
+
+  // ── Filtered expenses ──
+
+  const filteredDepenses = useMemo(() => {
+    let result = depenses;
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (d) =>
+          d.description.toLowerCase().includes(q) ||
+          getExpenseCategoryLabel(d.category).toLowerCase().includes(q)
+      );
+    }
+
+    if (activeChip) {
+      result = result.filter((d) => d.category === activeChip);
+    }
+
+    if (categoryFilter) {
+      result = result.filter((d) => d.category === categoryFilter);
+    }
+
+    if (paymentMethodFilter) {
+      result = result.filter((d) => d.paymentMethod === paymentMethodFilter);
+    }
+
+    return result;
+  }, [depenses, search, activeChip, categoryFilter, paymentMethodFilter]);
+
+  // ── Create expense ──
 
   const handleCreate = async () => {
     if (!newDescription.trim()) {
@@ -187,7 +277,43 @@ export default function DepensesPage() {
     }
   };
 
-  // Chart data
+  // ── Delete expense ──
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/depenses/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erreur lors de la suppression");
+      }
+      toast.success("Dépense supprimée avec succès");
+      setDeleteTarget(null);
+      fetchDepenses();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Sync chip with dropdown ──
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
+    setActiveChip(value);
+  };
+
+  const handleChipClick = (value: string) => {
+    setActiveChip(value);
+    setCategoryFilter(value);
+  };
+
+  // ── Chart data ──
+
   const chartData = stats
     ? Object.entries(stats.totalParCategorie)
         .filter(([, amount]) => amount > 0)
@@ -201,18 +327,7 @@ export default function DepensesPage() {
 
   const totalAll = stats ? chartData.reduce((s, d) => s + d.value, 0) : 0;
 
-  function CustomPieTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number } }> }) {
-    if (!active || !payload?.length) return null;
-    const data = payload[0];
-    const pct = totalAll > 0 ? ((data.payload.value / totalAll) * 100).toFixed(1) : "0";
-    return (
-      <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
-        <p className="font-medium">{data.payload.name}</p>
-        <p className="text-muted-foreground">{formatCurrency(data.payload.value)}</p>
-        <p className="text-xs text-muted-foreground">{pct}%</p>
-      </div>
-    );
-  }
+  const hasActiveFilters = search.trim() || activeChip || categoryFilter || paymentMethodFilter;
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
@@ -345,10 +460,10 @@ export default function DepensesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card>
+                <Card className="hover:shadow-md transition-shadow duration-200 group">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[#FF6B6B]/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-[#FF6B6B]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                         <TrendingDown className="h-5 w-5 text-[#FF6B6B]" />
                       </div>
                       <div>
@@ -360,10 +475,10 @@ export default function DepensesPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="hover:shadow-md transition-shadow duration-200 group">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                         <Receipt className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
@@ -373,10 +488,10 @@ export default function DepensesPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="hover:shadow-md transition-shadow duration-200 group">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[#FFB347]/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-[#FFB347]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                         <Wallet className="h-5 w-5 text-[#FFB347]" />
                       </div>
                       <div>
@@ -391,6 +506,101 @@ export default function DepensesPage() {
               </div>
             )}
 
+            {/* Search & Filter Bar */}
+            {!loading && depenses.length > 0 && (
+              <Card className="border-dashed">
+                <CardContent className="p-4 space-y-4">
+                  {/* Search input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher par description..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-9 h-10"
+                    />
+                  </div>
+
+                  {/* Filter dropdowns */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">
+                        <Filter className="h-3 w-3 inline mr-1" />
+                        Catégorie
+                      </Label>
+                      <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Toutes les catégories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Toutes">Toutes les catégories</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {getExpenseCategoryLabel(cat)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">
+                        <Filter className="h-3 w-3 inline mr-1" />
+                        Mode de paiement
+                      </Label>
+                      <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Tous les modes" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Tous">Tous les modes</SelectItem>
+                          {paymentMethods.map((method) => (
+                            <SelectItem key={method} value={method}>
+                              {getPaymentMethodLabel(method)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {hasActiveFilters && (
+                      <div className="flex items-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setSearch("");
+                            setCategoryFilter("");
+                            setPaymentMethodFilter("");
+                            setActiveChip("");
+                          }}
+                        >
+                          Effacer
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Category filter chips */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {filterChips.map((chip) => (
+                      <button
+                        key={chip.value}
+                        onClick={() => handleChipClick(chip.value)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0",
+                          activeChip === chip.value
+                            ? "bg-[#1A1A2E] text-white dark:bg-white dark:text-[#1A1A2E]"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        )}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Expense list */}
             {loading ? (
               <div className="space-y-3">
@@ -398,48 +608,95 @@ export default function DepensesPage() {
                   <Skeleton key={i} className="h-16 w-full rounded-xl" />
                 ))}
               </div>
-            ) : depenses.length > 0 ? (
+            ) : filteredDepenses.length > 0 ? (
               <div className="space-y-2">
-                {depenses.map((depense) => {
+                {filteredDepenses.map((depense) => {
                   const Icon = categoryIcons[depense.category] || CircleDollarSign;
                   const color = categoryColors[depense.category] || "#94A3B8";
                   return (
-                    <Card key={depense.id} className="hover:shadow-sm transition-shadow">
+                    <Card key={depense.id} className="hover:shadow-sm transition-shadow group">
                       <CardContent className="p-3 sm:p-4">
                         <div className="flex items-center gap-3">
+                          {/* Category icon */}
                           <div
-                            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+                            className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0"
                             style={{ backgroundColor: `${color}15` }}
                           >
                             <Icon className="h-5 w-5" style={{ color }} />
                           </div>
+
+                          {/* Description & metadata */}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{depense.description}</p>
-                            <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
                               <span>{getExpenseCategoryLabel(depense.category)}</span>
-                              <span>•</span>
-                              <span>{formatDateShort(depense.date)}</span>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="hidden sm:inline">{formatDateShort(depense.date)}</span>
                               <span>•</span>
                               <span>{getPaymentMethodLabel(depense.paymentMethod)}</span>
                             </div>
+                            {/* Mobile date */}
+                            <p className="sm:hidden text-xs text-muted-foreground mt-0.5">
+                              {formatDateShort(depense.date)}
+                            </p>
                           </div>
-                          <span className="text-sm font-bold text-[#FF6B6B] shrink-0">
-                            -{formatCurrency(depense.amount)}
-                          </span>
+
+                          {/* Amount & delete */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-bold text-[#FF6B6B]">
+                              -{formatCurrency(depense.amount)}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 sm:opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                              onClick={() => setDeleteTarget(depense)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
-            ) : (
-              <div className="text-center py-16">
-                <Receipt className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Aucune dépense enregistrée
+            ) : hasActiveFilters ? (
+              /* Empty state for filtered results */
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <SearchX className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+                <h3 className="text-base font-semibold mb-1">Aucune dépense trouvée</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+                  Aucune dépense ne correspond à vos critères de recherche. Essayez de modifier vos filtres.
                 </p>
                 <Button
-                  className="mt-4 bg-[#00D4AA] hover:bg-[#00C19C] text-white"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setCategoryFilter("");
+                    setPaymentMethodFilter("");
+                    setActiveChip("");
+                  }}
+                >
+                  <Filter className="h-4 w-4 mr-1.5" />
+                  Réinitialiser les filtres
+                </Button>
+              </div>
+            ) : (
+              /* Empty state for no expenses */
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <Receipt className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+                <h3 className="text-base font-semibold mb-1">Aucune dépense enregistrée</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Commencez par enregistrer votre première dépense
+                </p>
+                <Button
+                  className="bg-[#00D4AA] hover:bg-[#00C19C] text-white"
                   onClick={() => setDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
@@ -555,16 +812,59 @@ export default function DepensesPage() {
                 </Card>
               </div>
             ) : (
-              <div className="text-center py-16">
-                <Receipt className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Aucune donnée disponible
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <Receipt className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+                <h3 className="text-base font-semibold mb-1">Aucune donnée disponible</h3>
+                <p className="text-sm text-muted-foreground">
+                  Ajoutez des dépenses pour voir la répartition par catégorie
                 </p>
               </div>
             )}
           </TabsContent>
         </Tabs>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette dépense ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. La dépense{" "}
+              <span className="font-semibold text-foreground">
+                &quot;{deleteTarget?.description}&quot;
+              </span>{" "}
+              d&apos;un montant de{" "}
+              <span className="font-semibold text-foreground">
+                {deleteTarget ? formatCurrency(deleteTarget.amount) : ""}
+              </span>{" "}
+              sera définitivement supprimée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

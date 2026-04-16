@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -128,7 +129,7 @@ function StatCard({
           </div>
           <div
             className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
-            style={{ backgroundColor: `${color}15` }}
+            style={{ background: `linear-gradient(135deg, ${color}18, ${color}08)` }}
           >
             <Icon className="h-5 w-5" style={{ color }} />
           </div>
@@ -181,7 +182,7 @@ function CircularProgress({ value, size = 120, strokeWidth = 8 }: { value: numbe
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; color: string; dataKey: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border p-4 text-sm">
       <p className="font-medium mb-1.5">{label}</p>
       {payload.map((entry) => (
         <div key={entry.dataKey} className="flex items-center gap-2">
@@ -367,51 +368,75 @@ export default function DashboardPage() {
       {!loading && stats && stats.factures.enRetard > 0 && (
         <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5">
           <AlertTriangle className="h-4 w-4 text-[#FF6B6B]" />
-          <AlertDescription className="text-sm">
-            <span className="font-semibold text-[#FF6B6B]">
-              {stats.factures.enRetard} facture{stats.factures.enRetard > 1 ? "s" : ""} en retard
+          <AlertDescription className="text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>
+              <span className="font-semibold text-[#FF6B6B]">
+                {stats.factures.enRetard} facture{stats.factures.enRetard > 1 ? "s" : ""} en retard
+              </span>
+              {" — "}
+              <span className="text-muted-foreground">
+                {formatCurrency(stats.factures.montantEnRetard)} à recouvrer
+              </span>
             </span>
-            {" — "}
-            <span className="text-muted-foreground">
-              {formatCurrency(stats.factures.montantEnRetard)} à recouvrer
-            </span>
+            <Link
+              href="/dashboard/factures"
+              className="text-[#FF6B6B] hover:underline font-medium ml-auto"
+            >
+              Voir les factures →
+            </Link>
           </AlertDescription>
         </Alert>
       )}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <StatCard
-          title="Trésorerie estimée"
-          value={loading ? "" : formatCurrency(stats!.tresorerie.soldeEstime)}
-          icon={Wallet}
-          trend={loading ? undefined : stats!.tresorerie.variation}
-          trendLabel="vs mois dernier"
-          color="#00D4AA"
-          loading={loading}
-        />
-        <StatCard
-          title="Factures en attente"
-          value={loading ? "" : `${stats!.factures.enAttente}`}
-          icon={Clock}
-          color="#3B82F6"
-          loading={loading}
-        />
-        <StatCard
-          title="Factures en retard"
-          value={loading ? "" : `${stats!.factures.enRetard}`}
-          icon={AlertTriangle}
-          color="#FF6B6B"
-          loading={loading}
-        />
-        <StatCard
-          title="Dépenses du mois"
-          value={loading ? "" : formatCurrency(stats!.tresorerie.depensesMois)}
-          icon={TrendingDown}
-          color="#FFB347"
-          loading={loading}
-        />
-      </div>
+      <motion.div
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.1 } },
+        }}
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
+          <StatCard
+            title="Trésorerie estimée"
+            value={loading ? "" : formatCurrency(stats!.tresorerie.soldeEstime)}
+            icon={Wallet}
+            trend={loading ? undefined : stats!.tresorerie.variation}
+            trendLabel="vs mois dernier"
+            color="#00D4AA"
+            loading={loading}
+          />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
+          <StatCard
+            title="Factures en attente"
+            value={loading ? "" : `${stats!.factures.enAttente}`}
+            icon={Clock}
+            color="#3B82F6"
+            loading={loading}
+          />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
+          <StatCard
+            title="Factures en retard"
+            value={loading ? "" : `${stats!.factures.enRetard}`}
+            icon={AlertTriangle}
+            color="#FF6B6B"
+            loading={loading}
+          />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
+          <StatCard
+            title="Dépenses du mois"
+            value={loading ? "" : formatCurrency(stats!.tresorerie.depensesMois)}
+            icon={TrendingDown}
+            color="#FFB347"
+            loading={loading}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Chart + Taux recouvrement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -543,7 +568,7 @@ export default function DashboardPage() {
                 {stats.recentInvoices.map((inv) => (
                   <Link
                     key={inv.id}
-                    href="/dashboard/factures"
+                    href={`/dashboard/factures/${inv.id}`}
                     className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -648,7 +673,7 @@ export default function DashboardPage() {
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-base font-semibold">Activité récente</CardTitle>
           <Link
-            href="#"
+            href="/dashboard/factures"
             className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"
           >
             Voir tout <ArrowRight className="h-3 w-3" />

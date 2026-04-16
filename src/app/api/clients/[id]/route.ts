@@ -92,3 +92,109 @@ export async function GET(
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }
+
+/**
+ * PUT /api/clients/[id] — Modifier un client
+ */
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const organization = await db.organization.findUnique({
+      where: { clerkOrgId: "org_demo_klara" },
+    });
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organisation non trouvée" },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { name, email, phone, address, city, type, taxNumber, notes } = body;
+
+    const existing = await db.client.findFirst({
+      where: {
+        id,
+        organizationId: organization.id,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Client non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    const updated = await db.client.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(address !== undefined && { address }),
+        ...(city !== undefined && { city }),
+        ...(type !== undefined && { type }),
+        ...(taxNumber !== undefined && { taxNumber }),
+        ...(notes !== undefined && { notes }),
+      },
+    });
+
+    return NextResponse.json({ client: updated });
+  } catch (error) {
+    console.error("Erreur modification client:", error);
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/clients/[id] — Supprimer un client (soft delete)
+ */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const organization = await db.organization.findUnique({
+      where: { clerkOrgId: "org_demo_klara" },
+    });
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organisation non trouvée" },
+        { status: 404 }
+      );
+    }
+
+    const existing = await db.client.findFirst({
+      where: {
+        id,
+        organizationId: organization.id,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Client non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    await db.client.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    return NextResponse.json({ success: true, message: "Client supprimé" });
+  } catch (error) {
+    console.error("Erreur suppression client:", error);
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+}

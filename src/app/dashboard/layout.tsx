@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   FileText,
@@ -33,8 +34,12 @@ import {
   CircleDollarSign,
   Clock,
   Sparkles,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CommandPalette, CommandPaletteTrigger } from "@/components/command-palette";
+import { PageTransition } from "@/components/page-transition";
 
 const navItems = [
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
@@ -116,7 +121,7 @@ function NotificationBellDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9">
           <Bell className="h-5 w-5" />
-          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-white">
+          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-background">
             {unreadCount}
           </span>
           <span className="sr-only">Notifications</span>
@@ -155,7 +160,7 @@ function NotificationBellSheet() {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9">
           <Bell className="h-5 w-5" />
-          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-white">
+          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-background">
             {unreadCount}
           </span>
           <span className="sr-only">Notifications</span>
@@ -179,6 +184,22 @@ function NotificationBellSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 }
 
@@ -226,11 +247,11 @@ function NavContent({
                   )}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-200" />
                   )}
-                  <Icon className={cn("h-5 w-5", isActive && "text-[#00D4AA]")} />
+                  <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
                   {item.badge && (
-                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-[#00D4AA] text-[10px] font-bold text-white">
+                    <span className={cn("absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white" : "bg-muted text-muted-foreground")}>
                       {item.badge}
                     </span>
                   )}
@@ -254,14 +275,14 @@ function NavContent({
             )}
           >
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-200" />
             )}
-            <Icon className={cn("h-5 w-5 shrink-0", isActive && "text-[#00D4AA]")} />
+            <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
             <span className="text-sm font-medium truncate">{item.label}</span>
             {item.badge && (
               <Badge
                 variant="secondary"
-                className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold bg-[#00D4AA] text-white hover:bg-[#00D4AA]"
+                className={cn("ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white hover:bg-[#00D4AA]" : "bg-muted text-muted-foreground")}
               >
                 {item.badge}
               </Badge>
@@ -289,11 +310,12 @@ export default function DashboardLayout({
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen flex bg-[#F8F9FA]">
+      <CommandPalette />
+      <div className="min-h-screen flex bg-muted/30">
         {/* Desktop Sidebar */}
         <aside
           className={cn(
-            "hidden lg:flex flex-col fixed top-0 left-0 h-screen z-40 bg-white border-r border-border transition-all duration-300",
+            "hidden lg:flex flex-col fixed top-0 left-0 h-screen z-40 bg-background border-r border-border transition-all duration-300",
             collapsed ? "w-[72px]" : "w-[260px]"
           )}
         >
@@ -435,7 +457,7 @@ export default function DashboardLayout({
           )}
         >
           {/* Sticky header */}
-          <header className="h-16 sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 lg:px-6">
+          <header className="h-16 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-3">
               {/* Mobile menu button */}
               <Button
@@ -458,6 +480,8 @@ export default function DashboardLayout({
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* Search command palette trigger */}
+              <CommandPaletteTrigger />
               {/* Notification bell - mobile (Sheet) */}
               <div className="lg:hidden">
                 <NotificationBellSheet />
@@ -466,6 +490,8 @@ export default function DashboardLayout({
               <div className="hidden lg:block">
                 <NotificationBellDropdown />
               </div>
+              {/* Theme toggle */}
+              <ThemeToggle />
               {/* Nova facture button */}
               <Button
                 asChild
@@ -487,10 +513,12 @@ export default function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">{children}</div>
+          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">
+            <PageTransition>{children}</PageTransition>
+          </div>
 
           {/* Mobile bottom navigation */}
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border safe-area-pb">
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-area-pb">
             <div className="flex items-center justify-around h-16 px-2">
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
@@ -507,7 +535,7 @@ export default function DashboardLayout({
                       isActive ? "text-[#00D4AA]" : "text-muted-foreground"
                     )}
                   >
-                    <Icon className={cn("h-5 w-5", isActive && "text-[#00D4AA]")} />
+                    <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
                     <span className="text-[10px] font-medium">{item.label}</span>
                     {isActive && (
                       <span className="absolute top-0 w-8 h-0.5 bg-[#00D4AA] rounded-b-full" />

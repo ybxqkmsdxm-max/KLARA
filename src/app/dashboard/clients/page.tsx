@@ -35,6 +35,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -285,8 +286,16 @@ export default function ClientsPage() {
           placeholder="Rechercher un client..."
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="pl-9 h-10"
+          className={cn("pl-9 h-10 pr-9", search && "pr-9")}
         />
+        {search && (
+          <button
+            onClick={() => handleSearch("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Error */}
@@ -321,7 +330,12 @@ export default function ClientsPage() {
                   key={client.id}
                   href={`/dashboard/clients/${client.id}`}
                 >
-                  <Card className="hover:shadow-md transition-shadow h-full">
+                  <Card className={cn(
+                    "hover:shadow-md transition-shadow h-full border-l-4",
+                    client.type === "ENTREPRISE"
+                      ? "border-l-blue-500"
+                      : "border-l-gray-300 dark:border-l-gray-600"
+                  )}>
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3 mb-3">
                         <div
@@ -392,11 +406,17 @@ export default function ClientsPage() {
                             {formatCurrency(client.totalFacture)}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[10px] text-muted-foreground">Payé</p>
-                          <p className="text-sm font-medium text-emerald-600 mt-0.5">
-                            {formatCurrency(client.totalPaye)}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-[10px] text-muted-foreground">Payé</p>
+                            <p className="text-sm font-medium text-emerald-600 mt-0.5">
+                              {formatCurrency(client.totalPaye)}
+                            </p>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium transition-colors">
+                            <Eye className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Voir</span>
+                          </span>
                         </div>
                       </div>
                     </CardContent>

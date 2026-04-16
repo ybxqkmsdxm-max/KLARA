@@ -40,7 +40,7 @@ function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/90 backdrop-blur-lg shadow-sm border-b border-slate-100"
+          ? "bg-background/90 backdrop-blur-lg shadow-sm border-b border-slate-100 dark:border-slate-800"
           : "bg-transparent"
       }`}
     >
@@ -60,19 +60,19 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#fonctionnalites"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
             >
               Fonctionnalités
             </a>
             <a
               href="#tarifs"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
             >
               Tarifs
             </a>
             <a
               href="#comment"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
             >
               Comment ça marche
             </a>
@@ -81,7 +81,7 @@ function Navbar() {
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
             <Link href="/dashboard">
-              <Button variant="ghost" className="text-sm font-medium text-slate-600 hover:text-[#1A1A2E]">
+              <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Se connecter
               </Button>
             </Link>
@@ -94,7 +94,7 @@ function Navbar() {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-3 min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
@@ -104,18 +104,18 @@ function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-lg animate-fade-in-up transition-all duration-300 ease-out">
-          <div className="px-4 py-6 space-y-4">
-            <a href="#fonctionnalites" className="block text-slate-600 font-medium" onClick={() => setMobileOpen(false)}>
+        <div className="md:hidden bg-background/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-lg animate-fade-in-up transition-all duration-300 ease-out">
+          <div className="px-4 py-6 space-y-2">
+            <a href="#fonctionnalites" className="block text-muted-foreground font-medium py-3 px-2 rounded-lg hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>
               Fonctionnalités
             </a>
-            <a href="#tarifs" className="block text-slate-600 font-medium" onClick={() => setMobileOpen(false)}>
+            <a href="#tarifs" className="block text-muted-foreground font-medium py-3 px-2 rounded-lg hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>
               Tarifs
             </a>
-            <a href="#comment" className="block text-slate-600 font-medium" onClick={() => setMobileOpen(false)}>
+            <a href="#comment" className="block text-muted-foreground font-medium py-3 px-2 rounded-lg hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>
               Comment ça marche
             </a>
-            <hr className="border-slate-100" />
+            <hr className="border-border" />
             <Button className="w-full bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-semibold rounded-full">
               Essai gratuit
             </Button>
@@ -144,15 +144,15 @@ function Hero() {
           {/* Colonne texte */}
           <div className="text-center lg:text-left">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full px-4 py-1.5 mb-6 animate-fade-in-up">
-              <span className="text-sm">🇹🇬</span>
-              <span className="text-sm font-medium text-[#1A1A2E]">
+            <div className="inline-flex items-center gap-2 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 mb-4 sm:mb-6 animate-fade-in-up">
+              <span className="text-xs sm:text-sm">🇹🇬</span>
+              <span className="text-xs sm:text-sm font-medium text-[#1A1A2E]">
                 Fait pour les PME d&apos;Afrique de l&apos;Ouest
               </span>
             </div>
 
             {/* Titre */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1A2E] leading-tight mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
                 faites grandir votre business.
@@ -160,7 +160,7 @@ function Hero() {
             </h1>
 
             {/* Sous-titre */}
-            <p className="text-lg sm:text-xl md:text-2xl text-slate-600 mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               Klara simplifie la facturation, le suivi des dépenses et les relances clients
               pour les PME sans comptable. Payez et encaissez en Mobile Money.
             </p>
@@ -170,7 +170,7 @@ function Hero() {
               <Link href="/dashboard">
                 <Button
                   size="lg"
-                  className="bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-bold text-base px-8 py-6 rounded-full shadow-xl shadow-[#00D4AA]/25 transition-all hover:shadow-2xl hover:shadow-[#00D4AA]/30 hover:scale-105"
+                  className="bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-bold text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full shadow-xl shadow-[#00D4AA]/25 transition-all hover:shadow-2xl hover:shadow-[#00D4AA]/30 hover:scale-105"
                 >
                   Commencer gratuitement
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -180,7 +180,7 @@ function Hero() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-slate-200 text-slate-700 font-medium text-base px-8 py-6 rounded-full hover:bg-slate-50 transition-all"
+                  className="border-border text-foreground font-medium text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full hover:bg-muted transition-all"
                 >
                   Voir la démo
                 </Button>
@@ -188,26 +188,26 @@ function Hero() {
             </div>
 
             {/* Social proof */}
-            <div className="mt-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-              <div className="flex items-center gap-3 justify-center lg:justify-start">
+            <div className="mt-8 sm:mt-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <div className="flex -space-x-2">
                   {["bg-amber-400", "bg-emerald-400", "bg-sky-400", "bg-violet-400"].map((color, i) => (
                     <div
                       key={i}
-                      className={`w-8 h-8 rounded-full ${color} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${color} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}
                     >
                       {["A", "K", "M", "S"][i]}
                     </div>
                   ))}
                 </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-1">
+                <div className="text-center sm:text-left">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Rejoignez <strong className="text-slate-700">250+ entreprises</strong> qui font confiance à Klara
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Rejoignez <strong className="text-foreground">250+ entreprises</strong> qui font confiance à Klara
                   </p>
                 </div>
               </div>
@@ -216,7 +216,7 @@ function Hero() {
 
           {/* Colonne visuelle — Mockup dashboard */}
           <div className="relative animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
-            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 p-4 md:p-6 overflow-hidden">
+            <div className="relative bg-card rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-700 p-4 md:p-6 overflow-hidden scale-[0.85] sm:scale-100 origin-top">
               {/* Faux header */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex gap-1.5">
@@ -224,7 +224,7 @@ function Hero() {
                   <div className="w-3 h-3 rounded-full bg-amber-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
                 </div>
-                <div className="flex-1 bg-slate-100 rounded-md h-6 mx-4" />
+                <div className="flex-1 bg-muted rounded-md h-6 mx-4" />
               </div>
 
               {/* Faux dashboard */}
@@ -245,7 +245,7 @@ function Hero() {
                 </div>
 
                 {/* Faux graphique */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                <div className="bg-slate-50 dark:bg-muted rounded-xl p-4 border border-slate-100 dark:border-slate-700">
                   <div className="flex items-end justify-between h-20 gap-1.5">
                     {[40, 65, 45, 80, 55, 70, 90, 60, 75, 85, 65, 95].map((h, i) => (
                       <div
@@ -267,8 +267,8 @@ function Hero() {
                 </div>
 
                 {/* Faux tableau */}
-                <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-3 text-xs font-medium text-slate-500 bg-slate-50 px-3 py-2">
+                <div className="bg-card border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
+                  <div className="grid grid-cols-3 text-xs font-medium text-muted-foreground bg-muted px-3 py-2">
                     <span>Facture</span>
                     <span>Client</span>
                     <span className="text-right">Montant</span>
@@ -278,9 +278,9 @@ function Hero() {
                     { num: "FAC-2024-003", client: "Chez Maman", amount: "495 600", status: "blue" },
                     { num: "FAC-2024-002", client: "J-P. Agbéko", amount: "295 000", status: "red" },
                   ].map((row) => (
-                    <div key={row.num} className="grid grid-cols-3 text-xs px-3 py-2.5 border-t border-slate-50">
+                    <div key={row.num} className="grid grid-cols-3 text-xs px-3 py-2.5 border-t border-border">
                       <span className="font-medium text-slate-700">{row.num}</span>
-                      <span className="text-slate-500">{row.client}</span>
+                      <span className="text-muted-foreground">{row.client}</span>
                       <span className="text-right text-slate-700">{row.amount}</span>
                     </div>
                   ))}
@@ -289,7 +289,7 @@ function Hero() {
             </div>
 
             {/* Éléments flottants décoratifs */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl shadow-black/10 border border-slate-100 p-3 animate-float">
+            <div className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3 animate-float hidden lg:block">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                   <CreditCard className="w-4 h-4 text-emerald-600" />
@@ -301,7 +301,7 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl shadow-black/10 border border-slate-100 p-3 animate-float" style={{ animationDelay: "1.5s" }}>
+            <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3 animate-float hidden lg:block" style={{ animationDelay: "1.5s" }}>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
                   <Send className="w-4 h-4 text-amber-600" />
@@ -345,16 +345,16 @@ function ProblemSection() {
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-[#F8F9FA]">
+    <section className="py-14 md:py-28 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <Badge variant="secondary" className="mb-4 text-sm font-medium px-4 py-1.5">
             Le problème
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4 font-[var(--font-plus-jakarta)]">
             Vous vous reconnaissez ?
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Des milliers de commerçants et prestataires font face aux mêmes défis
             au quotidien en Afrique de l&apos;Ouest.
           </p>
@@ -364,7 +364,7 @@ function ProblemSection() {
           {painPoints.map((point, i) => (
             <Card
               key={i}
-              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group rounded-2xl"
+              className="border-slate-200 bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group rounded-2xl"
             >
               <CardContent className="p-8">
                 <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -373,7 +373,7 @@ function ProblemSection() {
                 <h3 className="text-xl font-bold text-[#1A1A2E] mb-3">
                   {point.title}
                 </h3>
-                <p className="text-slate-500 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {point.description}
                 </p>
               </CardContent>
@@ -435,16 +435,16 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="fonctionnalites" className="py-20 md:py-28">
+    <section id="fonctionnalites" className="py-14 md:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <Badge className="mb-4 text-sm font-medium px-4 py-1.5 bg-[#00D4AA]/10 text-[#00D4AA] border-[#00D4AA]/20">
             La solution
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4 font-[var(--font-plus-jakarta)]">
             Klara s&apos;occupe de tout
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Tout ce dont vous avez besoin pour gérer vos finances professionnelles,
             au même endroit.
           </p>
@@ -454,7 +454,7 @@ function FeaturesSection() {
           {features.map((feature, i) => (
             <Card
               key={i}
-              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden rounded-2xl"
+              className="border-slate-200 bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden rounded-2xl"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               <CardContent className="p-6 md:p-8 relative">
@@ -466,7 +466,7 @@ function FeaturesSection() {
                 <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-slate-500 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </CardContent>
@@ -507,13 +507,13 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="comment" className="py-20 md:py-28 bg-[#F8F9FA]">
+    <section id="comment" className="py-14 md:py-28 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4 font-[var(--font-plus-jakarta)]">
             3 étapes pour démarrer
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Simple, rapide, efficace. Pas besoin de formation comptable.
           </p>
         </div>
@@ -527,21 +527,21 @@ function HowItWorksSection() {
               </div>
 
               {/* Icône */}
-              <div className="w-16 h-16 bg-white shadow-lg border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#00D4AA] group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 bg-card shadow-lg border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#00D4AA] group-hover:scale-110 transition-transform">
                 {step.icon}
               </div>
 
               <h3 className="text-xl font-bold text-[#1A1A2E] mb-3">
                 {step.title}
               </h3>
-              <p className="text-slate-500 leading-relaxed max-w-xs mx-auto">
+              <p className="text-muted-foreground leading-relaxed max-w-xs mx-auto">
                 {step.description}
               </p>
 
               {/* Flèche (sauf dernier) */}
               {i < 2 && (
                 <div className="hidden md:block absolute top-20 -right-6 lg:-right-8">
-                  <ArrowRight className="w-8 h-8 text-slate-300" />
+                  <ArrowRight className="w-8 h-8 text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -611,13 +611,13 @@ function PricingSection() {
   ];
 
   return (
-    <section id="tarifs" className="py-20 md:py-28">
+    <section id="tarifs" className="py-14 md:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4 font-[var(--font-plus-jakarta)]">
             Simple et transparent
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Pas de frais cachés. Paiement par Mobile Money accepté.
           </p>
         </div>
@@ -626,9 +626,9 @@ function PricingSection() {
           {plans.map((plan, i) => (
             <Card
               key={i}
-              className={`relative bg-white transition-all duration-300 rounded-2xl ${
+              className={`relative bg-card transition-all duration-300 rounded-2xl ${
                 plan.popular
-                  ? "border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 scale-105 z-10 ring-4 ring-[#00D4AA]/5"
+                  ? "border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 md:scale-105 z-10 ring-4 ring-[#00D4AA]/5"
                   : "border-slate-200 hover:shadow-lg hover:-translate-y-1"
               }`}
             >
@@ -641,12 +641,12 @@ function PricingSection() {
               )}
               <CardHeader className="text-center pb-4 pt-8 px-6">
                 <h3 className="text-xl font-bold text-[#1A1A2E]">{plan.name}</h3>
-                <p className="text-sm text-slate-500 mt-1">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
                 <div className="mt-6">
                   <span className="text-4xl font-black text-[#1A1A2E] font-[var(--font-plus-jakarta)]">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-slate-500 ml-1">{plan.period}</span>
+                  <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
                 </div>
               </CardHeader>
               <CardContent className="px-6 pb-6">
@@ -654,7 +654,7 @@ function PricingSection() {
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-center gap-3 text-sm">
                       <Check className="w-4 h-4 text-[#00D4AA] flex-shrink-0" />
-                      <span className="text-slate-600">{feature}</span>
+                      <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -711,20 +711,20 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-[#F8F9FA]">
+    <section className="py-14 md:py-28 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4 font-[var(--font-plus-jakarta)]">
             Ils nous font confiance
           </h2>
-          <p className="text-lg text-slate-500">
+          <p className="text-lg text-muted-foreground">
             Des entrepreneurs comme vous, partout en Afrique de l&apos;Ouest.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
-            <Card key={i} className="bg-white border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 rounded-2xl">
+            <Card key={i} className="bg-card border-slate-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 rounded-2xl">
               <CardContent className="p-6 md:p-8">
                 {/* Étoiles */}
                 <div className="flex gap-1 mb-4">
@@ -733,7 +733,7 @@ function TestimonialsSection() {
                   ))}
                 </div>
 
-                <p className="text-slate-600 leading-relaxed mb-6 italic">
+                <p className="text-muted-foreground leading-relaxed mb-6 italic">
                   &ldquo;{t.text}&rdquo;
                 </p>
 
@@ -745,7 +745,7 @@ function TestimonialsSection() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#1A1A2E]">{t.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                       {t.business} — {t.city}
                     </p>
                   </div>
@@ -764,7 +764,7 @@ function TestimonialsSection() {
    ============================================================ */
 function FinalCTA() {
   return (
-    <section className="py-20 md:py-28">
+    <section className="py-14 md:py-28">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative bg-gradient-to-br from-[#00D4AA] to-[#00B894] rounded-3xl p-8 md:p-16 text-center overflow-hidden">
           {/* Pattern décoratif */}
@@ -785,7 +785,7 @@ function FinalCTA() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-[#1A1A2E] hover:bg-[#0F0F1E] text-white font-bold text-base px-8 py-6 rounded-full shadow-xl transition-all hover:scale-105"
+                className="bg-[#1A1A2E] hover:bg-[#0F0F1E] text-white font-bold text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full shadow-xl transition-all hover:scale-105"
               >
                 Essai gratuit 14 jours
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -793,7 +793,7 @@ function FinalCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base px-8 py-6 rounded-full hover:bg-[#1A1A2E]/10"
+                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full hover:bg-[#1A1A2E]/10"
               >
                 Sans carte bancaire
               </Button>
@@ -882,7 +882,7 @@ function Footer() {
    ============================================================ */
 export default function KlaraLandingPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-x-hidden">
       <Navbar />
       <Hero />
       <ProblemSection />

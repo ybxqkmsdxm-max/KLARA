@@ -13,6 +13,8 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Filter,
 } from "lucide-react";
 import { formatCurrency, formatDateShort, getInvoiceStatusLabel } from "@/lib/formatters";
@@ -181,7 +183,7 @@ export default function FacturesPage() {
             {filteredFactures.length > 0 ? (
               filteredFactures.map((facture) => (
                 <Link key={facture.id} href={`/dashboard/factures/${facture.id}`}>
-                  <Card className="hover:shadow-md transition-shadow">
+                  <Card className="hover:shadow-md active:scale-[0.98] transition-all duration-200">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -241,64 +243,68 @@ export default function FacturesPage() {
                   <thead>
                     <tr className="border-b text-left">
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Facture
+                        <span className="inline-flex items-center gap-1">Facture <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Client
+                        <span className="inline-flex items-center gap-1">Client <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Date d&apos;émission
+                        <span className="inline-flex items-center gap-1">Date <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Échéance
+                        <span className="inline-flex items-center gap-1">Échéance <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Montant
+                        <span className="inline-flex items-center gap-1">Montant <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Statut
+                        <span className="inline-flex items-center gap-1">Statut <ChevronUp className="h-3 w-3 opacity-40" /><ChevronDown className="h-3 w-3 -mt-1 opacity-40" /></span>
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {filteredFactures.length > 0 ? (
                       filteredFactures.map((facture) => (
-                        <tr key={facture.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
-                          <td className="px-4 py-3">
-                            <Link href={`/dashboard/factures/${facture.id}`} className="text-sm font-medium hover:underline">
-                              {facture.number}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div>
-                              <p className="text-sm font-medium">{facture.clientName}</p>
-                              {facture.clientEmail && (
-                                <p className="text-xs text-muted-foreground">
-                                  {facture.clientEmail}
-                                </p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground">
-                            {formatDateShort(facture.issueDate)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground">
-                            {formatDateShort(facture.dueDate)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="text-sm font-semibold">
-                              {formatCurrency(facture.total)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge
-                              variant="secondary"
-                              className={cn("text-[10px] font-medium", getStatusStyle(facture.status))}
-                            >
-                              {getInvoiceStatusLabel(facture.status)}
-                            </Badge>
-                          </td>
-                        </tr>
+                        <Link
+                          key={facture.id}
+                          href={`/dashboard/factures/${facture.id}`}
+                          className="contents"
+                        >
+                          <tr className="hover:bg-[#00D4AA]/5 transition-colors cursor-pointer border-l-2 border-l-transparent hover:border-l-[#00D4AA]">
+                            <td className="px-4 py-3">
+                              <span className="text-sm font-medium">{facture.number}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-sm font-medium">{facture.clientName}</p>
+                                {facture.clientEmail && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {facture.clientEmail}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground">
+                              {formatDateShort(facture.issueDate)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground">
+                              {formatDateShort(facture.dueDate)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-sm font-semibold">
+                                {formatCurrency(facture.total)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge
+                                variant="secondary"
+                                className={cn("text-[10px] font-medium", getStatusStyle(facture.status))}
+                              >
+                                {getInvoiceStatusLabel(facture.status)}
+                              </Badge>
+                            </td>
+                          </tr>
+                        </Link>
                       ))
                     ) : (
                       <tr>

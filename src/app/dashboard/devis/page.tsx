@@ -204,60 +204,65 @@ export default function DevisPage() {
           {filteredDevis.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDevis.map((devisItem) => (
-                <Card key={devisItem.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold">{devisItem.number}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {devisItem.clientName}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          "text-[10px] font-medium shrink-0",
-                          getStatusStyle(devisItem.status)
-                        )}
-                      >
-                        {getQuoteStatusLabel(devisItem.status)}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>Émis: {formatDateShort(devisItem.issueDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>Expire: {formatDateShort(devisItem.expiryDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ClipboardList className="h-3.5 w-3.5" />
-                        <span>{devisItem.itemsCount} ligne{devisItem.itemsCount > 1 ? "s" : ""}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <span className="text-base font-bold">
-                        {formatCurrency(devisItem.total)}
-                      </span>
-                      {devisItem.status === "ACCEPTE" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => handleConvert(devisItem.id)}
-                          disabled={convertingId === devisItem.id}
+                <Link key={devisItem.id} href={`/dashboard/devis/${devisItem.id}`}>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold">{devisItem.number}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {devisItem.clientName}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-[10px] font-medium shrink-0",
+                            getStatusStyle(devisItem.status)
+                          )}
                         >
-                          <ArrowRightLeft className="h-3 w-3 mr-1" />
-                          Convertir
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                          {getQuoteStatusLabel(devisItem.status)}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>Émis: {formatDateShort(devisItem.issueDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>Expire: {formatDateShort(devisItem.expiryDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ClipboardList className="h-3.5 w-3.5" />
+                          <span>{devisItem.itemsCount} ligne{devisItem.itemsCount > 1 ? "s" : ""}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <span className="text-base font-bold">
+                          {formatCurrency(devisItem.total)}
+                        </span>
+                        {devisItem.status === "ACCEPTE" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleConvert(devisItem.id);
+                            }}
+                            disabled={convertingId === devisItem.id}
+                          >
+                            <ArrowRightLeft className="h-3 w-3 mr-1" />
+                            Convertir
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           ) : (
