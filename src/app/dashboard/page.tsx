@@ -181,10 +181,10 @@ function CircularProgress({ value, size = 120, strokeWidth = 8 }: { value: numbe
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold" style={{ color }}>
+        <span className={size >= 140 ? "text-3xl" : "text-2xl"} style={{ color }}>
           {value}%
         </span>
-        <span className="text-[10px] text-muted-foreground">recouvré</span>
+        <span className="text-[10px] text-muted-foreground mt-0.5">recouvré</span>
       </div>
     </div>
   );
@@ -193,15 +193,15 @@ function CircularProgress({ value, size = 120, strokeWidth = 8 }: { value: numbe
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; color: string; dataKey: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border p-4 text-sm">
-      <p className="font-medium mb-1.5">{label}</p>
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-border/60 p-4 text-[13px]">
+      <p className="font-semibold text-sm mb-2">{label}</p>
       {payload.map((entry) => (
-        <div key={entry.dataKey} className="flex items-center gap-2">
+        <div key={entry.dataKey} className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-muted-foreground capitalize">
             {entry.dataKey === "encaissements" ? "Encaissements" : "Dépenses"}
           </span>
-          <span className="font-semibold ml-auto">{formatCurrency(entry.value)}</span>
+          <span className="font-bold ml-auto text-sm">{formatCurrency(entry.value)}</span>
         </div>
       ))}
     </div>
@@ -232,7 +232,7 @@ function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: ()
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h2 className="text-xl lg:text-2xl font-bold">Bonjour, Aminata</h2>
-          <p className="text-sm lg:text-base text-white/70 mt-1">
+          <p className="text-sm lg:text-base text-white/80 mt-1">
             Voici un résumé de votre activité
           </p>
         </div>
@@ -299,8 +299,8 @@ function QuickActionsRow() {
             className="flex-shrink-0 w-40 lg:w-auto snap-start"
           >
             <Card className={`group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-border/50 hover:border-border h-full border-l-4 ${action.color}`}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-600 transition-transform duration-200 group-hover:scale-110">
+              <CardContent className="p-4 flex items-center gap-3 min-h-[72px]">
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-600 transition-transform duration-200 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -402,8 +402,8 @@ export default function DashboardPage() {
 
       {/* Alert factures en retard */}
       {!loading && stats && stats.factures.enRetard > 0 && (
-        <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5">
-          <AlertTriangle className="h-4 w-4 text-[#FF6B6B]" />
+        <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5 border-l-4 border-l-[#FF6B6B] px-4">
+          <AlertTriangle className="h-4 w-4 text-[#FF6B6B] self-center" />
           <AlertDescription className="text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
             <span>
               <span className="font-semibold text-[#FF6B6B]">
@@ -477,9 +477,9 @@ export default function DashboardPage() {
       {/* Chart + Taux recouvrement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Flux trésorerie chart */}
-        <Card className="lg:col-span-2 relative overflow-hidden shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.2)]">
+        <Card className="lg:col-span-2 relative overflow-hidden shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.2)]" style={{ background: 'linear-gradient(180deg, rgba(26,26,46,0.03) 0%, transparent 40%)' }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Flux de trésorerie</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#00D4AA]" />Flux de trésorerie</CardTitle>
           </CardHeader>
           <CardContent className="relative">
             {/* Gradient overlay at bottom */}
@@ -499,10 +499,10 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="#FFB347" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" strokeOpacity={0.5} />
                   <XAxis dataKey="mois" tick={{ fontSize: 12 }} stroke="#94A3B8" />
                   <YAxis
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: 12 }}
                     stroke="#94A3B8"
                     tickFormatter={(v) =>
                       v >= 1000000
@@ -543,15 +543,16 @@ export default function DashboardPage() {
         {/* Taux recouvrement */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Taux de recouvrement</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />Taux de recouvrement</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center py-6">
             {loading ? (
               <Skeleton className="h-[120px] w-[120px] rounded-full" />
             ) : (
               <>
-                <CircularProgress value={stats!.factures.tauxRecouvrement} />
-                <div className="mt-6 space-y-3 w-full">
+                <CircularProgress value={stats!.factures.tauxRecouvrement} size={140} strokeWidth={9} />
+                <p className="text-xs text-muted-foreground mt-2 text-center">Objectif : 80%</p>
+                <div className="mt-4 space-y-3 w-full">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Encaissements</span>
                     <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
@@ -584,7 +585,7 @@ export default function DashboardPage() {
         {/* Factures récentes */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base font-semibold">Factures récentes</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#FFB347]" />Factures récentes</CardTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -662,7 +663,7 @@ export default function DashboardPage() {
         {/* Top clients */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base font-semibold">Top clients</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]" />Top clients</CardTitle>
             <Link
               href="/dashboard/clients"
               className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"
@@ -721,65 +722,65 @@ export default function DashboardPage() {
       {/* Prévisions de trésorerie */}
       <Card className="relative overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">Prévisions de trésorerie</CardTitle>
+          <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#1A1A2E]" />Prévisions de trésorerie</CardTitle>
           <span className="text-xs text-muted-foreground">Mois en cours</span>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Entrées prévues */}
-            <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 dark:border-emerald-500/20 dark:bg-emerald-500/5 p-4">
+            <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 dark:border-emerald-500/20 dark:bg-emerald-500/5 p-4 hover:shadow-sm transition-shadow duration-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center">
                   <ArrowUpRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Entrées prévues</span>
               </div>
-              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-emerald-800 dark:text-emerald-300">3 500 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-emerald-800 dark:text-emerald-300">3 500 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Projeté</span>
                   <span>78% atteint</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-emerald-200 dark:bg-emerald-500/20 overflow-hidden">
-                  <div className="h-full w-[78%] rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                <div className="h-2 rounded-full bg-emerald-200 dark:bg-emerald-500/20 overflow-hidden">
+                  <div className="h-full w-[78%] rounded-full bg-emerald-500 dark:bg-emerald-400 transition-all duration-700 ease-out" />
                 </div>
               </div>
             </div>
             {/* Sorties prévues */}
-            <div className="rounded-xl border border-orange-200/60 bg-orange-50/50 dark:border-orange-500/20 dark:bg-orange-500/5 p-4">
+            <div className="rounded-xl border border-orange-200/60 bg-orange-50/50 dark:border-orange-500/20 dark:bg-orange-500/5 p-4 hover:shadow-sm transition-shadow duration-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-500/15 flex items-center justify-center">
                   <ArrowDownRight className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <span className="text-xs font-medium text-orange-700 dark:text-orange-400">Sorties prévues</span>
               </div>
-              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-orange-800 dark:text-orange-300">1 800 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-orange-800 dark:text-orange-300">1 800 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Projeté</span>
                   <span>85% atteint</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-orange-200 dark:bg-orange-500/20 overflow-hidden">
-                  <div className="h-full w-[85%] rounded-full bg-orange-500 dark:bg-orange-400" />
+                <div className="h-2 rounded-full bg-orange-200 dark:bg-orange-500/20 overflow-hidden">
+                  <div className="h-full w-[85%] rounded-full bg-orange-500 dark:bg-orange-400 transition-all duration-700 ease-out" />
                 </div>
               </div>
             </div>
             {/* Solde projeté */}
-            <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 dark:border-blue-500/20 dark:bg-blue-500/5 p-4">
+            <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 dark:border-blue-500/20 dark:bg-blue-500/5 p-4 hover:shadow-sm transition-shadow duration-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/15 flex items-center justify-center">
                   <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Solde projeté</span>
               </div>
-              <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-blue-800 dark:text-blue-300">1 700 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-blue-800 dark:text-blue-300">1 700 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Actual vs Projeté</span>
                   <span className="text-blue-600 dark:text-blue-400 font-medium">+48%</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-blue-200 dark:bg-blue-500/20 overflow-hidden">
-                  <div className="h-full w-[60%] rounded-full bg-blue-500 dark:bg-blue-400" />
+                <div className="h-2 rounded-full bg-blue-200 dark:bg-blue-500/20 overflow-hidden">
+                  <div className="h-full w-[60%] rounded-full bg-blue-500 dark:bg-blue-400 transition-all duration-700 ease-out" />
                 </div>
               </div>
             </div>
@@ -790,7 +791,7 @@ export default function DashboardPage() {
       {/* Activity Timeline */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">Activité récente</CardTitle>
+          <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#00D4AA]" />Activité récente</CardTitle>
           <Link
             href="/dashboard/factures"
             className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"

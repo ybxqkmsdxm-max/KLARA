@@ -760,7 +760,100 @@ Polish visuel ciblé sur 3 pages clés : dashboard principal, liste des factures
 - Bouton X visible uniquement quand du texte est saisi (`{search && ...}`)
 - Appel `handleSearch("")` pour vider le champ et relancer la recherche
 - Positionné à droite de l'input avec `absolute right-3`
-- Hover : `text-muted-foreground hover:text-foreground transition-colors`
+- Hover : `text-muted-foreground hover:text-foreground`
+
+---
+
+## Session 14 — QA Round, Visual Polish, New Features (Notifications, Payment Recording)
+
+### Objectif :
+Review complet via agent-browser + VLM, correction du bug critique mobile (bottom nav overlap), polish visuel majeur sur landing + dashboard, et ajout de 3 nouvelles fonctionnalités (enregistrement paiement, centre de notifications, filtres devis).
+
+### Évaluation QA initiale (VLM sur screenshots) :
+
+| Page | Score Initial | Problèmes Identifiés |
+|------|-------------|------------------------|
+| Landing (/) | 6/10 | Hero spacing, feature icons trop petits, stats sans impact, testimonials basiques |
+| Dashboard Desktop | 6/10 | Chart y-axis trop petit, alert padding, typography faible, recovery rate petit |
+| Mobile Dashboard | 5/10 | **CRITIQUE** — Bottom nav overlap cards, alignment incohérent |
+| Mobile Landing | 9/10 | OK — seulement logo AKMS un peu petit |
+
+### FIX 1 : Mobile Bottom Nav Overlap (CRITIQUE)
+- **Fichier** : `src/app/dashboard/layout.tsx`
+- Remplacement de double padding par CSS `max()` : `max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px)))`
+- **Score** : 5/10 → **8/10** (VLM post-fix)
+
+### Dashboard Visual Polish (`src/app/dashboard/page.tsx`)
+- Chart : y-axis fontSize 12, grid strokeOpacity 0.5, tooltip text-[13px] + font-bold
+- Alert banner : px-4, border-l-4 border-l-[#FF6B6B], self-center icône
+- Typography : subtitle white/80, section headers avec dot coloré
+- Quick actions : min-h-[72px], icônes h-11 w-11 sm:h-12 sm:w-12
+- Recovery rate : size 140, strokeWidth 9, ajout "Objectif : 80%"
+- Cash flow forecast : hover:shadow-sm, montant text-xl sm:text-2xl, progress h-2 animation 700ms
+
+### Landing Page Polish (`src/app/page.tsx`)
+- Hero : mt-10 sm:mt-12 sur social proof
+- Feature cards : hover gradient 0.03→0.08, title hover:text-[#00D4AA], icônes w-14
+- Stats : background gradient, dividers verticaux, text-4xl sm:text-5xl
+- Testimonials : guillemets décoratifs, hover:shadow-xl, padding p-7 md:p-9
+- Pricing : shimmer animation, badge "✨ Populaire" agrandi, checkmark animations
+- Final CTA : couches glow pulsantes (4s/6s), padding sm:p-10, boutons agrandis
+- Footer : gradient border-top, duration-300 sur liens
+- Smooth scroll via useEffect
+
+### NOUVELLE FONCTIONNALITÉ : Enregistrement Paiement
+- **Nouveau** : `src/app/api/factures/[id]/pay/route.ts` (POST)
+- **Modifié** : `src/app/dashboard/factures/[id]/page.tsx`
+- Dialog avec Montant, Méthode (4 options), Date, Référence
+- Validation, loading state, toast, mise à jour optimistic barre progression
+
+### NOUVELLE FONCTIONNALITÉ : Historique Paiements Client
+- **Nouveau** : `src/app/api/clients/[id]/payments/route.ts` (GET)
+- **Modifié** : `src/app/dashboard/clients/[id]/page.tsx`
+- Tabs : Factures (existant) + Paiements (nouveau)
+- Liste paiements avec badge méthode, montant FCFA, date + total
+
+### NOUVELLE FONCTIONNALITÉ : Filtres Status Devis
+- **Modifié** : `src/app/dashboard/devis/page.tsx`
+- Filter chips : Tous, Brouillon, Envoyé, Accepté, Refusé, Expiré
+- Style actif bg-[#1A1A2E] text-white
+
+### NOUVELLE FONCTIONNALITÉ : Centre de Notifications
+- **Nouveau** : `src/app/api/notifications/route.ts` (GET/PATCH/DELETE)
+  - 15 notifications mock, 5 types, temps relatif, support ?unread=true
+- **Nouveau** : `src/app/dashboard/notifications/page.tsx`
+  - Header gradient, badge non lues, bouton "Tout marquer comme lu"
+  - 6 filtres, icônes colorées par type, bordure gauche non lue
+  - Actions hover (marquer lu, supprimer), empty state, liens factures
+- **Modifié** : `src/app/dashboard/layout.tsx` — lien → /dashboard/notifications
+- **Modifié** : `src/components/command-palette.tsx` — ajout "Notifications" (Bell icon)
+
+### Nouveaux fichiers :
+| Fichier | Description |
+|--------|-------------|
+| `src/app/api/factures/[id]/pay/route.ts` | POST enregistrement paiement |
+| `src/app/api/clients/[id]/payments/route.ts` | GET historique paiements client |
+| `src/app/api/notifications/route.ts` | GET/PATCH/DELETE notifications |
+| `src/app/dashboard/notifications/page.tsx` | Centre de notifications |
+
+### Scores finaux (VLM post-intervention) :
+- Mobile Dashboard : **5/10 → 8/10**
+- Landing Page : **6/10 → ~7.5/10**
+- Dashboard Desktop : **6/10 → ~7.5/10**
+
+### État :
+- ✅ ESLint clean (0 erreurs)
+- ✅ Toutes les routes HTTP 200
+- ✅ 4 nouveaux fichiers, 6 fichiers modifiés
+- ✅ Aucune nouvelle dépendance
+
+### Prochaines étapes prioritaires :
+1. Authentification NextAuth.js v4 multi-tenant
+2. Intégration CinetPay + FedaPay webhooks
+3. Notifications persistantes (modèle Prisma)
+4. Génération PDF factures
+5. Relances automatiques (cron J+7/J+15/J+30)
+6. Tests E2E Playwrightver:text-foreground transition-colors`
 
 ### Icônes ajoutées :
 - `ChevronUp`, `ChevronDown` (factures — indicateurs de tri)

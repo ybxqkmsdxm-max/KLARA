@@ -109,7 +109,23 @@ export default function FacturesPage() {
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Page Header — Desktop */}
+      <div className="hidden lg:block rounded-xl bg-gradient-to-r from-[#1A1A2E] to-[#1A1A2E]/90 text-white px-6 py-5 mb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Factures</h2>
+            <p className="text-sm text-white/70 mt-0.5">Gérez vos factures et suivez les paiements</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-3xl font-bold tabular-nums">{total}</p>
+              <p className="text-xs text-white/60">facture{total > 1 ? "s" : ""} au total</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Header — Mobile & actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Factures</h2>
@@ -162,16 +178,16 @@ export default function FacturesPage() {
         </div>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      {/* Status tabs with gradient border */}
+      <div className="flex gap-0.5 overflow-x-auto pb-1 scrollbar-none rounded-xl bg-muted/50 p-1">
         {statusTabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => handleTabChange(tab.value)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+              "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200",
               activeTab === tab.value
-                ? "bg-[#1A1A2E] text-white"
+                ? "bg-[#1A1A2E] text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >
@@ -254,9 +270,21 @@ export default function FacturesPage() {
               ))
             ) : (
               <div className="text-center py-16">
-                <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-sm font-medium text-muted-foreground">
+                <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                    <line x1="9" y1="11" x2="13" y2="11" />
+                  </svg>
+                </div>
+                <p className="text-sm font-semibold text-muted-foreground">
                   Aucune facture trouvée
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs mx-auto">
+                  {activeTab || search
+                    ? "Essayez de modifier vos filtres ou votre recherche."
+                    : "Créez votre première facture pour commencer à facturer vos clients."}
                 </p>
                 {activeTab === "" && search === "" && (
                   <Button
@@ -347,9 +375,21 @@ export default function FacturesPage() {
                     ) : (
                       <tr>
                         <td colSpan={6} className="px-4 py-16 text-center">
-                          <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                          <p className="text-sm font-medium text-muted-foreground">
+                          <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center">
+                            <svg className="w-10 h-10 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                              <line x1="9" y1="15" x2="15" y2="15" />
+                              <line x1="9" y1="11" x2="13" y2="11" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-semibold text-muted-foreground">
                             Aucune facture trouvée
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            {activeTab || search
+                              ? "Essayez de modifier vos filtres ou votre recherche."
+                              : "Créez votre première facture pour commencer à facturer vos clients."}
                           </p>
                           {activeTab === "" && search === "" && (
                             <Button

@@ -60,6 +60,8 @@ import {
   Filter,
   SearchX,
   Download,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import {
   formatCurrency,

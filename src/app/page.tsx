@@ -203,7 +203,7 @@ function Hero() {
             </div>
 
             {/* Social proof */}
-            <div className="mt-8 sm:mt-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+            <div className="mt-10 sm:mt-12 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <div className="flex -space-x-2">
                   {["bg-amber-400", "bg-emerald-400", "bg-sky-400", "bg-violet-400"].map((color, i) => (
@@ -472,14 +472,14 @@ function FeaturesSection() {
             <div key={i} className="group relative rounded-2xl">
               <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-br from-[#00D4AA] to-[#00B894] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <Card className="relative border-slate-200 dark:border-slate-700 bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-2xl z-[1]">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.08] to-[#00B894]/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               <CardContent className="p-6 md:p-8 relative z-10">
                 <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 ${feature.color}`}
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 ${feature.color}`}
                 >
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">
+                <h3 className="text-lg font-bold text-[#1A1A2E] mb-2 group-hover:text-[#00D4AA] transition-colors duration-300">
                   {feature.title}
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -527,7 +527,7 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: num
   }, [target, duration, hasAnimated]);
 
   return (
-    <div ref={ref} className="text-3xl sm:text-4xl font-extrabold text-[#1A1A2E] tabular-nums">
+    <div ref={ref} className="text-4xl sm:text-5xl font-extrabold text-[#1A1A2E] tabular-nums">
       {count.toLocaleString("fr-FR")}{suffix}
     </div>
   );
@@ -535,16 +535,18 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: num
 
 function StatsSection() {
   return (
-    <section className="py-12 md:py-16 border-y border-border/50 bg-muted/20">
+    <section className="py-12 md:py-16 border-y border-border/50 bg-gradient-to-r from-muted/30 via-[#00D4AA]/[0.03] to-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12">
-          <div className="text-center">
+          <div className="text-center relative">
             <AnimatedCounter target={2500} suffix="+" />
             <p className="text-sm text-muted-foreground mt-2 font-medium">PME qui nous font confiance</p>
+            <div className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-border/60" />
           </div>
-          <div className="text-center">
+          <div className="text-center relative">
             <AnimatedCounter target={15} suffix="M+" />
             <p className="text-sm text-muted-foreground mt-2 font-medium">FCFA traités chaque mois</p>
+            <div className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-border/60" />
           </div>
           <div className="text-center">
             <AnimatedCounter target={98} suffix="%" />
@@ -704,18 +706,24 @@ function PricingSection() {
           {plans.map((plan, i) => (
             <Card
               key={i}
-              className={`relative bg-card transition-all duration-300 rounded-2xl ${
+              className={`relative bg-card transition-all duration-300 rounded-2xl overflow-hidden ${
                 plan.popular
                   ? "border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 md:scale-105 z-10 ring-4 ring-[#00D4AA]/5"
                   : "border-slate-200 hover:shadow-lg hover:-translate-y-1"
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-4 py-1 shadow-lg shadow-[#00D4AA]/20">
-                    Populaire
-                  </Badge>
-                </div>
+                <>
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-5 py-1.5 text-sm shadow-lg shadow-[#00D4AA]/30 animate-pulse" style={{ animationDuration: "3s" }}>
+                      ✨ Populaire
+                    </Badge>
+                  </div>
+                  {/* Shimmer border effect */}
+                  <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-[1]">
+                    <div className="absolute inset-0 rounded-2xl animate-shimmer" />
+                  </div>
+                </>
               )}
               <CardHeader className="text-center pb-4 pt-8 px-6">
                 <h3 className="text-xl font-bold text-[#1A1A2E]">{plan.name}</h3>
@@ -730,7 +738,7 @@ function PricingSection() {
               <CardContent className="px-6 pb-6">
                 <ul className="space-y-3">
                   {plan.features.map((feature, j) => (
-                    <li key={j} className="flex items-center gap-3 text-sm">
+                    <li key={j} className={`flex items-center gap-3 text-sm ${plan.popular ? 'animate-count-up' : ''}`} style={{ animationDelay: `${j * 0.05}s` }}>
                       <Check className="w-4 h-4 text-[#00D4AA] flex-shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
@@ -843,8 +851,10 @@ function TestimonialsSection() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
-            <Card key={i} className="bg-card border-slate-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 rounded-2xl">
-              <CardContent className="p-6 md:p-8">
+            <Card key={i} className="bg-card border-slate-200 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 rounded-2xl transition-all duration-300">
+              <CardContent className="p-7 md:p-9 relative overflow-hidden">
+                {/* Quotation mark decorative */}
+                <div className="absolute top-3 right-5 text-[#00D4AA] opacity-[0.05] text-8xl font-serif leading-none select-none pointer-events-none">&ldquo;</div>
                 {/* Étoiles */}
                 <div className="flex gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((s) => (
@@ -885,7 +895,10 @@ function FinalCTA() {
   return (
     <section className="py-14 md:py-28">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00D4AA] rounded-3xl p-8 md:p-16 text-center overflow-hidden animate-gradient-bg shadow-2xl shadow-[#00D4AA]/15">
+        <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00D4AA] rounded-3xl p-8 sm:p-10 md:p-16 text-center overflow-hidden animate-gradient-bg shadow-2xl shadow-[#00D4AA]/15">
+          {/* Animated glow effect */}
+          <div className="absolute -inset-4 bg-[#00D4AA]/20 rounded-3xl blur-2xl animate-pulse" style={{ animationDuration: "4s" }} />
+          <div className="absolute -inset-8 bg-[#00D4AA]/10 rounded-3xl blur-3xl animate-pulse" style={{ animationDuration: "6s" }} />
           {/* Pattern décoratif */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-40 h-40 border border-white rounded-full -translate-x-1/2 -translate-y-1/2" />
@@ -904,7 +917,7 @@ function FinalCTA() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-[#1A1A2E] hover:bg-[#0F0F1E] text-white font-bold text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full shadow-xl transition-all hover:scale-105"
+                className="bg-[#1A1A2E] hover:bg-[#0F0F1E] text-white font-bold text-base sm:text-lg px-8 py-5 sm:px-10 sm:py-6 rounded-full shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
               >
                 Essai gratuit 14 jours
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -912,7 +925,7 @@ function FinalCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full hover:bg-[#1A1A2E]/10 transition-all hover:scale-105"
+                className="border-[#1A1A2E]/30 text-[#1A1A2E] font-medium text-base sm:text-lg px-8 py-5 sm:px-10 sm:py-6 rounded-full hover:bg-[#1A1A2E]/10 transition-all hover:scale-105"
               >
                 Sans carte bancaire
               </Button>
@@ -929,7 +942,9 @@ function FinalCTA() {
    ============================================================ */
 function Footer() {
   return (
-    <footer className="bg-[#1A1A2E] text-white py-16">
+    <footer className="bg-[#1A1A2E] text-white py-16 relative">
+      {/* Top gradient border */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00D4AA]/50 to-transparent" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           {/* Logo & tagline */}
@@ -947,29 +962,29 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Produit</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Ressources</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Centre d&apos;aide</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Blog</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Contact</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">API</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Centre d&apos;aide</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Blog</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Contact</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">API</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Légal</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Conditions d&apos;utilisation</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Confidentialité</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mentions légales</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Conditions d&apos;utilisation</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Confidentialité</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mentions légales</a></li>
             </ul>
           </div>
         </div>
@@ -984,7 +999,7 @@ function Footer() {
               <a
                 key={s}
                 href="#"
-                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30"
+                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30"
               >
                 {s}
               </a>
@@ -1000,6 +1015,14 @@ function Footer() {
    PAGE: Landing KLARA
    ============================================================ */
 export default function KlaraLandingPage() {
+  // Smooth scroll behavior
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      document.documentElement.style.scrollBehavior = "";
+    };
+  }, []);
+
   return (
     <main className="min-h-screen overflow-x-hidden">
       <Navbar />

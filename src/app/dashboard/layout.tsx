@@ -144,7 +144,7 @@ function NotificationBellDropdown() {
         </ScrollArea>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="p-0">
-          <Link href="/dashboard" className="w-full px-4 py-2.5 text-sm font-medium text-[#00D4AA] hover:text-[#00C19C] text-center transition-colors">
+          <Link href="/dashboard/notifications" className="w-full px-4 py-2.5 text-sm font-medium text-[#00D4AA] hover:text-[#00C19C] text-center transition-colors">
             Voir toutes les notifications
           </Link>
         </DropdownMenuItem>
@@ -513,7 +513,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <div className="flex-1 p-4 lg:p-6 pb-20 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-6">
+          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6" style={{ paddingBottom: 'max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px)))' }}>
             <PageTransition>{children}</PageTransition>
           </div>
 

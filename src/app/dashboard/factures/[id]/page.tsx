@@ -41,6 +41,8 @@ import {
   MessageSquare,
   Banknote,
   CircleDollarSign,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -51,6 +53,24 @@ import {
 } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +223,214 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+// ── Record Payment Dialog ────────────────────────────────────────────────────
+
+function RecordPaymentDialog({
+  invoiceId,
+  remaining,
+  onPaymentSuccess,
+}: {
+  invoiceId: string;
+  remaining: number;
+  onPaymentSuccess: (data: {
+    invoice: { status: string; paidAmount: number; total: number; paidAt: string | null };
+    payments: InvoicePayment[];
+  }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [reference, setReference] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [amountError, setAmountError] = useState("");
+
+  const paymentMethods = [
+    { value: "ESPECES", label: "Espèces" },
+    { value: "MOBILE_MONEY", label: "Mobile Money" },
+    { value: "VIREMENT", label: "Virement" },
+    { value: "CHEQUE", label: "Chèque" },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAmountError("");
+
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount <= 0) {
+      setAmountError("Le montant doit être supérieur à 0");
+      return;
+    }
+    if (numAmount > remaining) {
+      setAmountError(`Le montant ne peut pas dépasser ${formatCurrency(remaining)}`);
+      return;
+    }
+    if (!method) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await fetch(`/api/factures/${invoiceId}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: numAmount,
+          method,
+          date: date || undefined,
+          reference: reference || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || "Erreur lors de l'enregistrement du paiement");
+        return;
+      }
+
+      const data = await res.json();
+      toast.success(
+        `Paiement de ${formatCurrency(numAmount)} enregistré avec succès`
+      );
+      onPaymentSuccess(data);
+      setOpen(false);
+      // Reset form
+      setAmount("");
+      setMethod("");
+      setDate(new Date().toISOString().split("T")[0]);
+      setReference("");
+    } catch {
+      toast.error("Erreur lors de l'enregistrement du paiement");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 border-[#00D4AA] text-[#00D4AA] hover:bg-[#00D4AA] hover:text-white gap-1.5"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Enregistrer un paiement</span>
+          <span className="sm:hidden">Paiement</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5 text-[#00D4AA]" />
+            Enregistrer un paiement
+          </DialogTitle>
+          <DialogDescription>
+            Reste à payer :{" "}
+            <span className="font-semibold text-foreground">
+              {formatCurrency(remaining)}
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Montant */}
+          <div className="space-y-2">
+            <Label htmlFor="pay-amount">Montant (FCFA) *</Label>
+            <Input
+              id="pay-amount"
+              type="number"
+              min="1"
+              max={remaining}
+              step="1"
+              placeholder="Ex : 150000"
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setAmountError("");
+              }}
+              className={cn(
+                "font-mono",
+                amountError && "border-[#FF6B6B] focus-visible:ring-[#FF6B6B]/30"
+              )}
+            />
+            {amountError && (
+              <p className="text-xs text-[#FF6B6B]">{amountError}</p>
+            )}
+          </div>
+
+          {/* Méthode */}
+          <div className="space-y-2">
+            <Label>Méthode de paiement *</Label>
+            <Select value={method} onValueChange={setMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une méthode" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Date */}
+          <div className="space-y-2">
+            <Label htmlFor="pay-date">Date *</Label>
+            <Input
+              id="pay-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+
+          {/* Référence */}
+          <div className="space-y-2">
+            <Label htmlFor="pay-ref">Référence (optionnel)</Label>
+            <Input
+              id="pay-ref"
+              type="text"
+              placeholder="Ex : N° transaction"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+            />
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={submitting}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={submitting || !method || !amount}
+              className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  Enregistrer
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Main Page Component ──────────────────────────────────────────────────────
 
 export default function FactureDetailPage() {
@@ -275,6 +503,20 @@ export default function FactureDetailPage() {
     } finally {
       setMarkingPaid(false);
     }
+  };
+
+  const handlePaymentSuccess = (data: {
+    invoice: { status: string; paidAmount: number; total: number; paidAt: string | null };
+    payments: InvoicePayment[];
+  }) => {
+    if (!invoice) return;
+    setInvoice({
+      ...invoice,
+      status: data.invoice.status,
+      paidAmount: data.invoice.paidAmount,
+      paidAt: data.invoice.paidAt,
+      payments: data.payments,
+    });
   };
 
   const handleAction = (action: string) => {
@@ -678,16 +920,24 @@ export default function FactureDetailPage() {
               </div>
             )}
 
-            {/* Mark as paid button */}
+            {/* Action buttons */}
             {!isFullyPaid && (
-              <Button
-                onClick={handleMarkAsPaid}
-                disabled={markingPaid}
-                className="w-full sm:w-auto bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                {markingPaid ? "Mise à jour..." : "Marquer comme payée"}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <RecordPaymentDialog
+                  invoiceId={id}
+                  remaining={remaining}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+                <Button
+                  onClick={handleMarkAsPaid}
+                  disabled={markingPaid}
+                  variant="outline"
+                  className="w-full sm:w-auto font-medium"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  {markingPaid ? "Mise à jour..." : "Marquer comme payée"}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -710,16 +960,23 @@ export default function FactureDetailPage() {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={handleMarkAsPaid}
-              disabled={markingPaid}
-              variant="outline"
-              size="sm"
-              className="shrink-0 border-[#00D4AA] text-[#00D4AA] hover:bg-[#00D4AA] hover:text-white"
-            >
-              <CheckCircle className="h-4 w-4 mr-1.5" />
-              Marquer comme payée
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              <RecordPaymentDialog
+                invoiceId={id}
+                remaining={remaining}
+                onPaymentSuccess={handlePaymentSuccess}
+              />
+              <Button
+                onClick={handleMarkAsPaid}
+                disabled={markingPaid}
+                variant="outline"
+                size="sm"
+                className="border-[#00D4AA] text-[#00D4AA] hover:bg-[#00D4AA] hover:text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-1.5" />
+                Marquer comme payée
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

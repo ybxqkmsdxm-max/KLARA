@@ -12,6 +12,7 @@ import {
   Plus,
   UserPlus,
   Search,
+  Bell,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -78,6 +79,13 @@ const navigationItems: PaletteItem[] = [
     href: "/dashboard/parametres",
     icon: Settings,
     keywords: ["settings", "configuration", "préférences", "profil", "compte"],
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    href: "/dashboard/notifications",
+    icon: Bell,
+    keywords: ["alerte", "rappel", "notification", "bell", "inbox", "message"],
   },
 ];
 

@@ -37,6 +37,7 @@ import {
   ChevronRight,
   Eye,
   Download,
+  CircleDollarSign,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -163,6 +164,32 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
+      {/* Revenue Stat Card */}
+      {!loading && clients.length > 0 && (
+        <div className="rounded-xl bg-gradient-to-r from-[#1A1A2E] to-[#1A1A2E]/90 text-white px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <CircleDollarSign className="h-5 w-5 text-[#00D4AA]" />
+            </div>
+            <div>
+              <p className="text-xs text-white/60">Chiffre d'affaires total</p>
+              <p className="text-xl font-bold tabular-nums">
+                {formatCurrency(clients.reduce((sum, c) => sum + c.totalFacture, 0))}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-white/70">
+              {total} client{total > 1 ? "s" : ""}
+              {" — "}
+              {clients.filter((c) => c.type === "ENTREPRISE").length} Entreprise{clients.filter((c) => c.type === "ENTREPRISE").length > 1 ? "s" : ""}
+              {", "}
+              {clients.filter((c) => c.type === "PARTICULIER").length} Particulier{clients.filter((c) => c.type === "PARTICULIER").length > 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -359,7 +386,7 @@ export default function ClientsPage() {
                   href={`/dashboard/clients/${client.id}`}
                 >
                   <Card className={cn(
-                    "hover:shadow-md transition-all duration-200 h-full border-l-4 cursor-pointer",
+                    "hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full border-l-4 cursor-pointer",
                     client.type === "ENTREPRISE"
                       ? "border-l-blue-500"
                       : "border-l-[#8B5CF6]"

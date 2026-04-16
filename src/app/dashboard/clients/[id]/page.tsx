@@ -34,14 +34,23 @@ import {
   Calendar,
   Trash2,
   Loader2,
+  Banknote,
 } from "lucide-react";
 import {
   formatCurrency,
   formatDateShort,
+  formatDate,
   getInvoiceStatusLabel,
+  getPaymentMethodLabel,
 } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface ClientInvoice {
   id: string;
@@ -52,6 +61,17 @@ interface ClientInvoice {
   total: number;
   paidAmount: number;
   montantDu: number;
+}
+
+interface ClientPayment {
+  id: string;
+  amount: number;
+  method: string;
+  status: string;
+  paidAt: string;
+  invoiceNumber: string;
+  invoiceId: string;
+  invoiceStatus: string;
 }
 
 interface ClientDetail {
@@ -105,6 +125,10 @@ export default function ClientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [payments, setPayments] = useState<ClientPayment[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [totalPayments, setTotalPayments] = useState(0);
+  const [activeTab, setActiveTab] = useState("factures");
 
   const fetchClient = useCallback(async () => {
     try {
@@ -124,6 +148,28 @@ export default function ClientDetailPage() {
   useEffect(() => {
     fetchClient();
   }, [fetchClient]);
+
+  const fetchPayments = useCallback(async () => {
+    try {
+      setPaymentsLoading(true);
+      const res = await fetch(`/api/clients/${id}/payments`);
+      if (!res.ok) throw new Error("Erreur");
+      const data = await res.json();
+      setPayments(data.payments);
+      setTotalPayments(data.totalPayments);
+    } catch {
+      // Silently fail — payments tab will show empty
+    } finally {
+      setPaymentsLoading(false);
+    }
+  }, [id]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "paiements" && payments.length === 0 && !paymentsLoading) {
+      fetchPayments();
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -347,109 +393,210 @@ export default function ClientDetailPage() {
         </Card>
       </div>
 
-      {/* Invoices */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+      {/* Invoices & Payments Tabs */}
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <TabsList className="grid grid-cols-2 w-full sm:w-auto sm:inline-flex">
+          <TabsTrigger value="factures" className="gap-1.5">
             <FileText className="h-4 w-4" />
             Factures ({client.nombreFactures})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {client.factures.length > 0 ? (
-            <div className="divide-y max-h-96 overflow-y-auto">
-              {client.factures.map((invoice) => {
-                const paymentPercent =
-                  invoice.total > 0
-                    ? Math.round((invoice.paidAmount / invoice.total) * 100)
-                    : 0;
-                const isPartial =
-                  paymentPercent > 0 && paymentPercent < 100;
-                const isPaid = paymentPercent >= 100;
+          </TabsTrigger>
+          <TabsTrigger value="paiements" className="gap-1.5">
+            <Banknote className="h-4 w-4" />
+            Paiements
+          </TabsTrigger>
+        </TabsList>
 
-                return (
-                  <Link
-                    key={invoice.id}
-                    href={`/dashboard/factures/${invoice.id}`}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium truncate">
-                            {invoice.number}
-                          </p>
-                          <Badge
-                            variant="secondary"
-                            className={cn(
-                              "text-[10px] font-medium shrink-0",
-                              getStatusStyle(invoice.status)
-                            )}
-                          >
-                            <span className="flex items-center gap-1">
-                              {getStatusIcon(invoice.status)}
-                              {getInvoiceStatusLabel(invoice.status)}
-                            </span>
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Calendar className="h-3 w-3" />
-                          {formatDateShort(invoice.issueDate)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0 ml-3">
-                      <p className="text-sm font-semibold font-mono">
-                        {formatCurrency(invoice.total)}
-                      </p>
-                      {(isPartial || isPaid) && (
-                        <div className="flex items-center gap-2 justify-end mt-1">
-                          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                isPaid
-                                  ? "bg-emerald-500"
-                                  : "bg-amber-500"
-                              )}
-                              style={{ width: `${paymentPercent}%` }}
-                            />
+        <TabsContent value="factures">
+          <Card>
+            <CardContent className="p-0">
+              {client.factures.length > 0 ? (
+                <div className="divide-y max-h-96 overflow-y-auto">
+                  {client.factures.map((invoice) => {
+                    const paymentPercent =
+                      invoice.total > 0
+                        ? Math.round((invoice.paidAmount / invoice.total) * 100)
+                        : 0;
+                    const isPartial =
+                      paymentPercent > 0 && paymentPercent < 100;
+                    const isPaid = paymentPercent >= 100;
+
+                    return (
+                      <Link
+                        key={invoice.id}
+                        href={`/dashboard/factures/${invoice.id}`}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
                           </div>
-                          <span
-                            className={cn(
-                              "text-[10px] font-medium",
-                              isPaid
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-amber-600 dark:text-amber-400"
-                            )}
-                          >
-                            {paymentPercent}%
-                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium truncate">
+                                {invoice.number}
+                              </p>
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  "text-[10px] font-medium shrink-0",
+                                  getStatusStyle(invoice.status)
+                                )}
+                              >
+                                <span className="flex items-center gap-1">
+                                  {getStatusIcon(invoice.status)}
+                                  {getInvoiceStatusLabel(invoice.status)}
+                                </span>
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Calendar className="h-3 w-3" />
+                              {formatDateShort(invoice.issueDate)}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      {!isPaid && !isPartial && invoice.montantDu > 0 && (
-                        <span className="text-[10px] text-[#FF6B6B] mt-0.5 block">
-                          Reste: {formatCurrency(invoice.montantDu)}
-                        </span>
-                      )}
+                        <div className="text-right shrink-0 ml-3">
+                          <p className="text-sm font-semibold font-mono">
+                            {formatCurrency(invoice.total)}
+                          </p>
+                          {(isPartial || isPaid) && (
+                            <div className="flex items-center gap-2 justify-end mt-1">
+                              <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full transition-all",
+                                    isPaid
+                                      ? "bg-emerald-500"
+                                      : "bg-amber-500"
+                                  )}
+                                  style={{ width: `${paymentPercent}%` }}
+                                />
+                              </div>
+                              <span
+                                className={cn(
+                                  "text-[10px] font-medium",
+                                  isPaid
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-amber-600 dark:text-amber-400"
+                                )}
+                              >
+                                {paymentPercent}%
+                              </span>
+                            </div>
+                          )}
+                          {!isPaid && !isPartial && invoice.montantDu > 0 && (
+                            <span className="text-[10px] text-[#FF6B6B] mt-0.5 block">
+                              Reste: {formatCurrency(invoice.montantDu)}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-4 py-12 text-center">
+                  <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Aucune facture pour ce client
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="paiements">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Banknote className="h-4 w-4" />
+                  Historique des paiements
+                </CardTitle>
+                {payments.length > 0 && (
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-sm font-bold text-[#00D4AA] font-mono">
+                      {formatCurrency(totalPayments)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {paymentsLoading ? (
+                <div className="px-4 py-8 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-20" />
                     </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="px-4 py-12 text-center">
-              <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Aucune facture pour ce client
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  ))}
+                </div>
+              ) : payments.length > 0 ? (
+                <div className="divide-y max-h-96 overflow-y-auto">
+                  {payments.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium truncate">
+                              {getPaymentMethodLabel(payment.method)}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-[10px] font-medium shrink-0",
+                                payment.status === "CONFIRME"
+                                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                                  : "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400"
+                              )}
+                            >
+                              {payment.status === "CONFIRME" ? "Confirmé" : payment.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <span>{formatDate(payment.paidAt)}</span>
+                            <span className="text-border">·</span>
+                            <Link
+                              href={`/dashboard/factures/${payment.invoiceId}`}
+                              className="text-[#00D4AA] hover:underline"
+                            >
+                              {payment.invoiceNumber}
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold font-mono text-emerald-600 dark:text-emerald-400 shrink-0 ml-3">
+                        {formatCurrency(payment.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-12 text-center">
+                  <Banknote className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Aucun paiement enregistré
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Danger zone */}
       <Card className="border-[#FF6B6B]/30 dark:border-[#FF6B6B]/20">

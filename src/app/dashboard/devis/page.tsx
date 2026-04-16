@@ -147,16 +147,16 @@ export default function DevisPage() {
         </Button>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      {/* Status filter chips */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {statusTabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => handleTabChange(tab.value)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+              "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0",
               activeTab === tab.value
-                ? "bg-[#1A1A2E] text-white"
+                ? "bg-[#1A1A2E] text-white dark:bg-white dark:text-[#1A1A2E]"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >
