@@ -180,7 +180,7 @@ export default function FacturesPage() {
           <div className="block lg:hidden space-y-3">
             {filteredFactures.length > 0 ? (
               filteredFactures.map((facture) => (
-                <Link key={facture.id} href="/dashboard/factures">
+                <Link key={facture.id} href={`/dashboard/factures/${facture.id}`}>
                   <Card className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
@@ -263,9 +263,11 @@ export default function FacturesPage() {
                   <tbody className="divide-y">
                     {filteredFactures.length > 0 ? (
                       filteredFactures.map((facture) => (
-                        <tr key={facture.id} className="hover:bg-muted/50 transition-colors">
+                        <tr key={facture.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
                           <td className="px-4 py-3">
-                            <span className="text-sm font-medium">{facture.number}</span>
+                            <Link href={`/dashboard/factures/${facture.id}`} className="text-sm font-medium hover:underline">
+                              {facture.number}
+                            </Link>
                           </td>
                           <td className="px-4 py-3">
                             <div>

@@ -7,7 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   LayoutDashboard,
   FileText,
@@ -19,6 +28,11 @@ import {
   Plus,
   ChevronLeft,
   X,
+  Bell,
+  AlertTriangle,
+  CircleDollarSign,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +52,135 @@ const mobileNavItems = [
   { href: "/dashboard/clients", label: "Clients", icon: Users },
   { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
 ];
+
+const notifications = [
+  {
+    id: "1",
+    message: "Facture FAC-2024-002 est en retard depuis 7 jours",
+    time: "Il y a 2h",
+    color: "#FF6B6B",
+    icon: AlertTriangle,
+  },
+  {
+    id: "2",
+    message: "Nouveau paiement reçu : 2 065 000 FCFA",
+    time: "Il y a 5h",
+    color: "#00D4AA",
+    icon: CircleDollarSign,
+  },
+  {
+    id: "3",
+    message: "Rappel : DEV-2024-002 expire dans 3 jours",
+    time: "Il y a 1j",
+    color: "#FFB347",
+    icon: Clock,
+  },
+  {
+    id: "4",
+    message: "Bienvenue sur Klara ! Configurez votre entreprise",
+    time: "Il y a 3j",
+    color: "#3B82F6",
+    icon: Sparkles,
+  },
+];
+
+const unreadCount = notifications.length;
+
+function NotificationItem({ notification }: { notification: typeof notifications[0] }) {
+  const Icon = notification.icon;
+  return (
+    <div
+      className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors relative"
+    >
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
+        style={{ backgroundColor: notification.color }}
+      />
+      <div
+        className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+        style={{ backgroundColor: `${notification.color}15` }}
+      >
+        <Icon className="h-4 w-4" style={{ color: notification.color }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm leading-snug">{notification.message}</p>
+        <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+      </div>
+    </div>
+  );
+}
+
+function NotificationBellDropdown() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-white">
+            {unreadCount}
+          </span>
+          <span className="sr-only">Notifications</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 p-0">
+        <DropdownMenuLabel className="px-4 py-3 flex items-center justify-between">
+          <span className="font-semibold">Notifications</span>
+          <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-[#FF6B6B] text-white hover:bg-[#FF6B6B]">
+            {unreadCount}
+          </Badge>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ScrollArea className="max-h-80">
+          {notifications.map((n) => (
+            <DropdownMenuItem key={n.id} className="p-0 cursor-pointer focus:bg-muted/50">
+              <NotificationItem notification={n} />
+            </DropdownMenuItem>
+          ))}
+        </ScrollArea>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="p-0">
+          <Link href="/dashboard" className="w-full px-4 py-2.5 text-sm font-medium text-[#00D4AA] hover:text-[#00C19C] text-center transition-colors">
+            Voir toutes les notifications
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function NotificationBellSheet() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-[#FF6B6B] text-[10px] font-bold text-white border-2 border-white">
+            {unreadCount}
+          </span>
+          <span className="sr-only">Notifications</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-[340px] p-0">
+        <SheetHeader className="px-4 pt-4 pb-2">
+          <SheetTitle className="flex items-center justify-between">
+            <span>Notifications</span>
+            <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-[#FF6B6B] text-white hover:bg-[#FF6B6B]">
+              {unreadCount}
+            </Badge>
+          </SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="flex-1 h-[calc(100vh-80px)]">
+          <div className="divide-y divide-border">
+            {notifications.map((n) => (
+              <NotificationItem key={n.id} notification={n} />
+            ))}
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+}
 
 function getPageTitle(pathname: string): string {
   if (pathname === "/dashboard") return "Tableau de bord";
@@ -315,6 +458,14 @@ export default function DashboardLayout({
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* Notification bell - mobile (Sheet) */}
+              <div className="lg:hidden">
+                <NotificationBellSheet />
+              </div>
+              {/* Notification bell - desktop (Dropdown) */}
+              <div className="hidden lg:block">
+                <NotificationBellDropdown />
+              </div>
               {/* Nova facture button */}
               <Button
                 asChild

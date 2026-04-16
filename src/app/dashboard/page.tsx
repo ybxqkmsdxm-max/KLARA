@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Wallet,
   Clock,
@@ -15,8 +16,17 @@ import {
   ArrowRight,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
+  ArrowDownLeft,
+  Bell,
   Users,
   FileText,
+  X,
+  Plus,
+  FileSpreadsheet,
+  UserPlus,
+  Receipt,
+  BarChart3,
 } from "lucide-react";
 import {
   AreaChart,
@@ -86,7 +96,7 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-4 lg:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -117,7 +127,7 @@ function StatCard({
             )}
           </div>
           <div
-            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
             style={{ backgroundColor: `${color}15` }}
           >
             <Icon className="h-5 w-5" style={{ color }} />
@@ -186,10 +196,128 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   );
 }
 
+function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+  if (!visible) return null;
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl p-5 lg:p-6 text-white ring-1 ring-white/10"
+      style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #2D2D4F 100%)" }}
+    >
+      {/* Subtle dot pattern overlay for depth */}
+      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
+        <div className="absolute top-4 right-4 w-32 h-32 rounded-full border-4 border-white" />
+        <div className="absolute top-12 right-12 w-20 h-20 rounded-full border-4 border-white" />
+      </div>
+      <button
+        onClick={onDismiss}
+        className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+      >
+        <X className="h-3.5 w-3.5 text-white/80" />
+        <span className="sr-only">Fermer</span>
+      </button>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl lg:text-2xl font-bold">Bonjour, Aminata</h2>
+          <p className="text-sm lg:text-base text-white/70 mt-1">
+            Voici un résumé de votre activité
+          </p>
+        </div>
+        <div className="hidden sm:flex items-center justify-center shrink-0">
+          <div className="relative">
+            <BarChart3 className="h-16 w-16 text-white/20" />
+            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#00D4AA] animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const quickActions = [
+  {
+    label: "Nouvelle facture",
+    description: "Créer et envoyer",
+    href: "/dashboard/factures/nouvelle",
+    icon: FileText,
+  },
+  {
+    label: "Nouveau devis",
+    description: "Générer un devis",
+    href: "/dashboard/devis/nouveau",
+    icon: FileSpreadsheet,
+  },
+  {
+    label: "Ajouter client",
+    description: "Ajouter un contact",
+    href: "/dashboard/clients",
+    icon: UserPlus,
+  },
+  {
+    label: "Nouvelle dépense",
+    description: "Enregistrer une dépense",
+    href: "/dashboard/depenses",
+    icon: Receipt,
+  },
+];
+
+// Données mock pour la timeline
+const activities = [
+  { id: 1, type: "payment", message: "Paiement reçu de Togo Télécom", detail: "+2 065 000 FCFA via Mobile Money", time: "Il y a 2h", color: "#00D4AA" },
+  { id: 2, type: "invoice", message: "Facture FAC-2024-003 envoyée", detail: "Restaurant Chez Maman — 495 600 FCFA", time: "Il y a 5h", color: "#3B82F6" },
+  { id: 3, type: "reminder", message: "Relance automatique envoyée", detail: "J-P. Agbéko — FAC-2024-002 (J+7)", time: "Hier", color: "#FFB347" },
+  { id: 4, type: "client", message: "Nouveau client ajouté", detail: "Société Togo Télécom — Entreprise", time: "Il y a 3j", color: "#8B5CF6" },
+  { id: 5, type: "expense", message: "Dépense enregistrée", detail: "Fournitures — 1 200 000 FCFA", time: "Il y a 3j", color: "#FF6B6B" },
+];
+
+function QuickActionsRow() {
+  return (
+    <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 snap-x snap-mandatory scrollbar-none">
+      {quickActions.map((action) => {
+        const Icon = action.icon;
+        return (
+          <Link
+            key={action.label}
+            href={action.href}
+            className="flex-shrink-0 w-40 lg:w-auto snap-start"
+          >
+            <Card className="group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-border/50 hover:border-border h-full">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-600 transition-transform duration-200 group-hover:scale-110">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold leading-tight">{action.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{action.description}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem("klara-welcome-dismissed");
+    if (!dismissed) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const dismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    sessionStorage.setItem("klara-welcome-dismissed", "true");
+  }, []);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -229,6 +357,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Welcome banner */}
+      <WelcomeBanner visible={showWelcome} onDismiss={dismissWelcome} />
+
+      {/* Quick actions */}
+      <QuickActionsRow />
+
       {/* Alert factures en retard */}
       {!loading && stats && stats.factures.enRetard > 0 && (
         <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5">
@@ -508,6 +642,56 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Activity Timeline */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base font-semibold">Activité récente</CardTitle>
+          <Link
+            href="#"
+            className="text-xs text-[#00D4AA] hover:text-[#00C19C] font-medium flex items-center gap-1"
+          >
+            Voir tout <ArrowRight className="h-3 w-3" />
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-0">
+            {activities.map((activity, idx) => {
+              const iconMap: Record<string, { icon: React.ElementType; color: string }> = {
+                payment: { icon: ArrowDownLeft, color: activity.color },
+                invoice: { icon: FileText, color: activity.color },
+                reminder: { icon: Bell, color: activity.color },
+                client: { icon: UserPlus, color: activity.color },
+                expense: { icon: TrendingDown, color: activity.color },
+              };
+              const { icon: ActIcon, color: actColor } = iconMap[activity.type];
+              const isLast = idx === activities.length - 1;
+              return (
+                <div key={activity.id} className="relative flex gap-4">
+                  {/* Timeline line + dot */}
+                  <div className="flex flex-col items-center">
+                    <div
+                      className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${actColor}15` }}
+                    >
+                      <ActIcon className="h-4 w-4" style={{ color: actColor }} />
+                    </div>
+                    {!isLast && (
+                      <div className="w-px flex-1 bg-border" />
+                    )}
+                  </div>
+                  {/* Content */}
+                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"}`}>
+                    <p className="text-sm font-medium">{activity.message}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{activity.detail}</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

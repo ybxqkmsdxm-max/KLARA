@@ -60,19 +60,19 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#fonctionnalites"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors font-medium"
+              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
             >
               Fonctionnalités
             </a>
             <a
               href="#tarifs"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors font-medium"
+              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
             >
               Tarifs
             </a>
             <a
               href="#comment"
-              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors font-medium"
+              className="text-sm text-slate-600 hover:text-[#1A1A2E] transition-colors duration-200 font-medium"
             >
               Comment ça marche
             </a>
@@ -104,7 +104,7 @@ function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 shadow-lg animate-fade-in-up">
+        <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-lg animate-fade-in-up transition-all duration-300 ease-out">
           <div className="px-4 py-6 space-y-4">
             <a href="#fonctionnalites" className="block text-slate-600 font-medium" onClick={() => setMobileOpen(false)}>
               Fonctionnalités
@@ -152,7 +152,7 @@ function Hero() {
             </div>
 
             {/* Titre */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1A2E] leading-tight mb-6 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1A2E] leading-tight mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
                 faites grandir votre business.
@@ -160,13 +160,13 @@ function Hero() {
             </h1>
 
             {/* Sous-titre */}
-            <p className="text-lg sm:text-xl text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="text-lg sm:text-xl md:text-2xl text-slate-600 mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               Klara simplifie la facturation, le suivi des dépenses et les relances clients
               pour les PME sans comptable. Payez et encaissez en Mobile Money.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
               <Link href="/dashboard">
                 <Button
                   size="lg"
@@ -237,10 +237,9 @@ function Hero() {
                     { label: "En retard", value: "295 000", color: "bg-red-50 text-red-700 border-red-100" },
                     { label: "Dépenses", value: "1 245 000", color: "bg-slate-50 text-slate-700 border-slate-100" },
                   ].map((stat) => (
-                    <div key={stat.label} className={`${stat.color} border rounded-xl p-3`}>
+                    <div key={stat.label} className={`${stat.color} border rounded-xl p-3.5`}>
                       <p className="text-xs font-medium opacity-70">{stat.label}</p>
-                      <p className="text-lg font-bold mt-0.5">{stat.value}</p>
-                      <p className="text-xs opacity-50">FCFA</p>
+                      <p className="text-lg font-bold mt-0.5">{stat.value} <span className="text-xs font-semibold opacity-70">FCFA</span></p>
                     </div>
                   ))}
                 </div>
@@ -290,7 +289,7 @@ function Hero() {
             </div>
 
             {/* Éléments flottants décoratifs */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border border-slate-100 p-3 animate-float">
+            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl shadow-black/10 border border-slate-100 p-3 animate-float">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                   <CreditCard className="w-4 h-4 text-emerald-600" />
@@ -302,7 +301,7 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-slate-100 p-3 animate-float" style={{ animationDelay: "1.5s" }}>
+            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl shadow-black/10 border border-slate-100 p-3 animate-float" style={{ animationDelay: "1.5s" }}>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
                   <Send className="w-4 h-4 text-amber-600" />
@@ -365,10 +364,10 @@ function ProblemSection() {
           {painPoints.map((point, i) => (
             <Card
               key={i}
-              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
+              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group rounded-2xl"
             >
               <CardContent className="p-8">
-                <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   {point.icon}
                 </div>
                 <h3 className="text-xl font-bold text-[#1A1A2E] mb-3">
@@ -455,11 +454,12 @@ function FeaturesSection() {
           {features.map((feature, i) => (
             <Card
               key={i}
-              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
+              className="border-slate-200 bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden rounded-2xl"
             >
-              <CardContent className="p-6 md:p-8">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <CardContent className="p-6 md:p-8 relative">
                 <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform ${feature.color}`}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 ${feature.color}`}
                 >
                   {feature.icon}
                 </div>
@@ -626,10 +626,10 @@ function PricingSection() {
           {plans.map((plan, i) => (
             <Card
               key={i}
-              className={`relative bg-white ${
+              className={`relative bg-white transition-all duration-300 rounded-2xl ${
                 plan.popular
-                  ? "border-[#00D4AA] shadow-xl shadow-[#00D4AA]/10 scale-105 z-10"
-                  : "border-slate-200"
+                  ? "border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 scale-105 z-10 ring-4 ring-[#00D4AA]/5"
+                  : "border-slate-200 hover:shadow-lg hover:-translate-y-1"
               }`}
             >
               {plan.popular && (
@@ -724,7 +724,7 @@ function TestimonialsSection() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
-            <Card key={i} className="bg-white border-slate-200">
+            <Card key={i} className="bg-white border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 rounded-2xl">
               <CardContent className="p-6 md:p-8">
                 {/* Étoiles */}
                 <div className="flex gap-1 mb-4">
@@ -828,29 +828,29 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Produit</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Fonctionnalités</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Tarifs</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Intégrations</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Mises à jour</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Ressources</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Centre d&apos;aide</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Contact</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">API</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Centre d&apos;aide</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Blog</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Contact</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">API</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Légal</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Conditions d&apos;utilisation</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Confidentialité</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors">Mentions légales</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Conditions d&apos;utilisation</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Confidentialité</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mentions légales</a></li>
             </ul>
           </div>
         </div>
@@ -865,7 +865,7 @@ function Footer() {
               <a
                 key={s}
                 href="#"
-                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors"
+                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors hover:underline underline-offset-4 decoration-[#00D4AA]/30"
               >
                 {s}
               </a>
