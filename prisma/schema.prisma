@@ -1,0 +1,230 @@
+// Schéma KLARA — Gestion financière pour PME UEMOA
+// Toutes les tables incluent organization_id pour le multi-tenant
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ORGANISATION ====================
+
+model Organization {
+  id                 String   @id @default(cuid())
+  clerkOrgId         String   @unique
+  name               String
+  email              String?
+  phone              String?
+  logoUrl            String?
+  address            String?
+  city               String   @default("Lomé")
+  country            String   @default("TG")
+  currency           String   @default("XOF")
+  taxNumber          String?
+  sector             String?
+  plan               String   @default("STARTER") // STARTER, BUSINESS, PRO
+  trialEndsAt        DateTime?
+  subscriptionEndsAt DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  clients     Client[]
+  invoices    Invoice[]
+  quotes      Quote[]
+  expenses    Expense[]
+  payments    Payment[]
+  reminderLogs ReminderLog[]
+}
+
+// ==================== UTILISATEUR ====================
+
+model User {
+  id             String   @id @default(cuid())
+  clerkUserId    String   @unique
+  email          String
+  name           String?
+  avatarUrl      String?
+  role           String   @default("MEMBER") // OWNER, ADMIN, MEMBER
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  expenses    Expense[]
+}
+
+// ==================== CLIENT ====================
+
+model Client {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  city           String?
+  type           String   @default("PARTICULIER") // PARTICULIER, ENTREPRISE
+  taxNumber      String?
+  notes          String?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  invoices    Invoice[]
+  quotes      Quote[]
+}
+
+// ==================== FACTURE ====================
+
+model Invoice {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  clientId            String
+  number              String
+  status              String    @default("BROUILLON") // BROUILLON, ENVOYEE, PAYEE, EN_RETARD, ANNULEE
+  issueDate           DateTime
+  dueDate             DateTime
+  subtotal            Int       @default(0)
+  taxRate             Int       @default(18)
+  taxAmount           Int       @default(0)
+  total               Int       @default(0)
+  currency            String    @default("XOF")
+  notes               String?
+  termsAndConditions  String?
+  paymentLink         String?
+  paidAt              DateTime?
+  paidAmount          Int       @default(0)
+  sentAt              DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  organization  Organization   @relation(fields: [organizationId], references: [id])
+  client        Client         @relation(fields: [clientId], references: [id])
+  items         InvoiceItem[]
+  payments      Payment[]
+  reminderLogs  ReminderLog[]
+}
+
+// ==================== LIGNE DE FACTURE ====================
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Int     @default(0)
+  total       Int     @default(0)
+  order       Int     @default(0)
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ==================== DEVIS ====================
+
+model Quote {
+  id                   String    @id @default(cuid())
+  organizationId       String
+  clientId             String
+  number               String
+  status               String    @default("BROUILLON") // BROUILLON, ENVOYE, ACCEPTE, REFUSE, EXPIRE
+  issueDate            DateTime
+  expiryDate           DateTime
+  subtotal             Int       @default(0)
+  taxRate              Int       @default(18)
+  taxAmount            Int       @default(0)
+  total                Int       @default(0)
+  currency             String    @default("XOF")
+  notes                String?
+  convertedToInvoiceId String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  client       Client       @relation(fields: [clientId], references: [id])
+  items        QuoteItem[]
+}
+
+// ==================== LIGNE DE DEVIS ====================
+
+model QuoteItem {
+  id          String  @id @default(cuid())
+  quoteId     String
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Int     @default(0)
+  total       Int     @default(0)
+  order       Int     @default(0)
+
+  // Relations
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+// ==================== DÉPENSE ====================
+
+model Expense {
+  id             String    @id @default(cuid())
+  organizationId String
+  category       String    @default("AUTRE")
+  description    String
+  amount         Int
+  currency       String    @default("XOF")
+  date           DateTime
+  receiptUrl     String?
+  paymentMethod  String    @default("ESPECES") // ESPECES, MOBILE_MONEY, VIREMENT, CHEQUE, CARTE
+  createdBy      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User?        @relation(fields: [createdBy], references: [id])
+}
+
+// ==================== PAIEMENT ====================
+
+model Payment {
+  id             String    @id @default(cuid())
+  organizationId String
+  invoiceId      String
+  amount         Int
+  currency       String    @default("XOF")
+  method         String    @default("MANUEL") // MOBILE_MONEY, VIREMENT, ESPECES, CHEQUE, AUTRE
+  provider       String    @default("MANUEL") // CINETPAY, FEDAPAY, MANUEL
+  transactionId  String?
+  status         String    @default("CONFIRME") // EN_ATTENTE, CONFIRME, ECHOUE, REMBOURSE
+  paidAt         DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+// ==================== HISTORIQUE RELANCES ====================
+
+model ReminderLog {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  organizationId String
+  type           String   @default("EMAIL") // EMAIL, WHATSAPP
+  sentAt         DateTime @default(now())
+  status         String   @default("ENVOYE") // ENVOYE, ECHEC
+  daysAfterDue   Int
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+}

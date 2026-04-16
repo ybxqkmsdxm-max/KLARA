@@ -1,0 +1,373 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  LayoutDashboard,
+  FileText,
+  ClipboardList,
+  Users,
+  Wallet,
+  Settings,
+  Menu,
+  Plus,
+  ChevronLeft,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+  { href: "/dashboard/factures", label: "Factures", icon: FileText, badge: "3" },
+  { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
+  { href: "/dashboard/clients", label: "Clients", icon: Users },
+  { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
+  { href: "/dashboard/parametres", label: "Paramètres", icon: Settings },
+];
+
+const mobileNavItems = [
+  { href: "/dashboard", label: "Accueil", icon: LayoutDashboard },
+  { href: "/dashboard/factures", label: "Factures", icon: FileText },
+  { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
+  { href: "/dashboard/clients", label: "Clients", icon: Users },
+  { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
+];
+
+function getPageTitle(pathname: string): string {
+  if (pathname === "/dashboard") return "Tableau de bord";
+  if (pathname.startsWith("/dashboard/factures/nouvelle")) return "Nouvelle facture";
+  if (pathname.startsWith("/dashboard/factures")) return "Factures";
+  if (pathname.startsWith("/dashboard/devis/nouveau")) return "Nouveau devis";
+  if (pathname.startsWith("/dashboard/devis")) return "Devis";
+  if (pathname.startsWith("/dashboard/clients")) return "Clients";
+  if (pathname.startsWith("/dashboard/depenses")) return "Dépenses";
+  if (pathname.startsWith("/dashboard/parametres")) return "Paramètres";
+  return "Klara";
+}
+
+function NavContent({
+  pathname,
+  collapsed,
+  onNavigate,
+}: {
+  pathname: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="flex flex-col gap-1 px-3 py-4">
+      {navItems.map((item) => {
+        const isActive =
+          item.href === "/dashboard"
+            ? pathname === "/dashboard"
+            : pathname.startsWith(item.href);
+        const Icon = item.icon;
+        return collapsed ? (
+          <TooltipProvider key={item.href} delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center justify-center h-10 rounded-lg transition-all relative",
+                    isActive
+                      ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full" />
+                  )}
+                  <Icon className={cn("h-5 w-5", isActive && "text-[#00D4AA]")} />
+                  {item.badge && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-[#00D4AA] text-[10px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="font-medium">
+                {item.label}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 h-10 px-3 rounded-lg transition-all relative",
+              isActive
+                ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            {isActive && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full" />
+            )}
+            <Icon className={cn("h-5 w-5 shrink-0", isActive && "text-[#00D4AA]")} />
+            <span className="text-sm font-medium truncate">{item.label}</span>
+            {item.badge && (
+              <Badge
+                variant="secondary"
+                className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold bg-[#00D4AA] text-white hover:bg-[#00D4AA]"
+              >
+                {item.badge}
+              </Badge>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pageTitle = getPageTitle(pathname);
+
+  const handleMobileNav = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
+  return (
+    <TooltipProvider>
+      <div className="min-h-screen flex bg-[#F8F9FA]">
+        {/* Desktop Sidebar */}
+        <aside
+          className={cn(
+            "hidden lg:flex flex-col fixed top-0 left-0 h-screen z-40 bg-white border-r border-border transition-all duration-300",
+            collapsed ? "w-[72px]" : "w-[260px]"
+          )}
+        >
+          {/* Logo */}
+          <div className="h-16 flex items-center px-4 border-b border-border shrink-0">
+            {collapsed ? (
+              <Link href="/dashboard" className="mx-auto">
+                <div className="h-9 w-9 rounded-lg bg-[#1A1A2E] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">K</span>
+                </div>
+              </Link>
+            ) : (
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-lg bg-[#1A1A2E] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">K</span>
+                </div>
+                <span className="text-lg font-bold text-foreground tracking-tight">
+                  Klara
+                </span>
+              </Link>
+            )}
+          </div>
+
+          {/* Navigation */}
+          <div className="flex-1 overflow-y-auto">
+            <NavContent pathname={pathname} collapsed={collapsed} />
+          </div>
+
+          {/* Collapse toggle */}
+          <div className="border-t border-border p-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCollapsed(!collapsed)}
+              className={cn(
+                "w-full justify-center",
+                !collapsed && "justify-start"
+              )}
+            >
+              <ChevronLeft
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  collapsed && "rotate-180"
+                )}
+              />
+              {!collapsed && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  Réduire
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {/* User profile */}
+          {!collapsed && (
+            <div className="border-t border-border p-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
+                    AM
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">Aminata Mensah</p>
+                  <Badge
+                    variant="secondary"
+                    className="mt-0.5 text-[10px] font-bold bg-[#00D4AA]/10 text-[#00D4AA] hover:bg-[#00D4AA]/10"
+                  >
+                    BUSINESS
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+          {collapsed && (
+            <div className="border-t border-border p-3 flex justify-center">
+              <Avatar className="h-9 w-9">
+                <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
+                  AM
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </aside>
+
+        {/* Mobile sidebar via Sheet */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-[280px] p-0">
+            <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
+            <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+              <Link
+                href="/dashboard"
+                onClick={handleMobileNav}
+                className="flex items-center gap-2.5"
+              >
+                <div className="h-9 w-9 rounded-lg bg-[#1A1A2E] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">K</span>
+                </div>
+                <span className="text-lg font-bold text-foreground tracking-tight">
+                  Klara
+                </span>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileOpen(false)}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <NavContent pathname={pathname} collapsed={false} onNavigate={handleMobileNav} />
+            <div className="border-t border-border p-4 mt-auto">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
+                    AM
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">Aminata Mensah</p>
+                  <Badge
+                    variant="secondary"
+                    className="mt-0.5 text-[10px] font-bold bg-[#00D4AA]/10 text-[#00D4AA] hover:bg-[#00D4AA]/10"
+                  >
+                    BUSINESS
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Main content */}
+        <main
+          className={cn(
+            "flex-1 flex flex-col min-h-screen transition-all duration-300",
+            collapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
+          )}
+        >
+          {/* Sticky header */}
+          <header className="h-16 sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 lg:px-6">
+            <div className="flex items-center gap-3">
+              {/* Mobile menu button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden h-9 w-9"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              {/* Mobile logo */}
+              <Link href="/dashboard" className="lg:hidden">
+                <div className="h-8 w-8 rounded-lg bg-[#1A1A2E] flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">K</span>
+                </div>
+              </Link>
+              {/* Page title */}
+              <h1 className="text-lg font-semibold text-foreground hidden sm:block">
+                {pageTitle}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Nova facture button */}
+              <Button
+                asChild
+                size="sm"
+                className="bg-[#00D4AA] hover:bg-[#00C19C] text-white text-sm font-medium"
+              >
+                <Link href="/dashboard/factures/nouvelle">
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Nouvelle facture</span>
+                </Link>
+              </Button>
+              {/* Avatar */}
+              <Avatar className="h-8 w-8 sm:hidden">
+                <AvatarFallback className="bg-[#1A1A2E] text-white text-[10px] font-bold">
+                  AM
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </header>
+
+          {/* Page content */}
+          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">{children}</div>
+
+          {/* Mobile bottom navigation */}
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border safe-area-pb">
+            <div className="flex items-center justify-around h-16 px-2">
+              {mobileNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
+                      isActive ? "text-[#00D4AA]" : "text-muted-foreground"
+                    )}
+                  >
+                    <Icon className={cn("h-5 w-5", isActive && "text-[#00D4AA]")} />
+                    <span className="text-[10px] font-medium">{item.label}</span>
+                    {isActive && (
+                      <span className="absolute top-0 w-8 h-0.5 bg-[#00D4AA] rounded-b-full" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </main>
+      </div>
+    </TooltipProvider>
+  );
+}
