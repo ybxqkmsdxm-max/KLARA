@@ -1342,3 +1342,114 @@ Revue complète CSS et UX du site KLARA via agent-browser + VLM. Screenshots de 
 5. **Notifications page** : Page complète de notifications
 6. **Reports** : Graphiques avancés dans la page rapports
 7. **Accessibility** : Audit WCAG complet
+
+---
+
+## Session 19 — CSS Review & Visual Fixes (Landing Page + Dashboard)
+
+### Objectif :
+Répondre à la demande utilisateur : review CSS et utilisation du site. Analyse via VLM des screenshots uploadés + screenshots du site vivant, correction systématique de tous les problèmes CSS identifiés.
+
+### Processus de review :
+1. **Screenshots** pris via `agent-browser` : landing page (hero, features, pricing, footer), dashboard
+2. **Analyse VLM** sur chaque screenshot pour identifier problèmes CSS spécifiques
+3. **Correction ciblée** de tous les problèmes identifiés
+
+### Scores QA avant / après :
+| Page | Avant | Après |
+|------|-------|-------|
+| Landing Page (hero) | 7/10 | 7.5/10 |
+| Landing Page (pricing) | ~5/10 | **8/10** |
+| Dashboard | 7/10 | 7.5/10 |
+
+### Modifications apportées :
+
+#### 1. Section Tarifs — Refonte majeure (`src/app/page.tsx`)
+
+##### Structure des cartes
+- **`flex flex-col`** ajouté aux cartes pour que le bouton soit toujours en bas
+- **`items-stretch`** sur la grid pour des hauteurs égales
+- **Bordures uniformisées** : `border-2 border-[#00D4AA]` (popular) vs `border border-slate-200 dark:border-slate-700` (non-popular)
+- **Dark mode** : ajout de `dark:border-slate-700` sur les cartes non-populaires
+
+##### Badge "Plus populaire"
+- **Position corrigée** : `-top-3` → `top-3` (plus coupé par le viewport)
+- **Contenu simplifié** : `✨ Plus populaire` → `★ Plus populaire` (sans emoji)
+- **Taille responsive** : `text-[11px] sm:text-xs` avec `px-4 py-0.5`
+
+##### Prix et périodicité
+- **Prix** : agrandi à `text-4xl sm:text-5xl` avec `tracking-tight`
+- **Préfixe XOF** : ajouté avant le prix pour les plans payants
+- **Période** : séparée du prix dans un paragraphe dédié, `text-sm font-medium` avec couleur #00D4AA pour le plan populaire
+- **Alignment** : `flex items-baseline justify-center gap-1` pour aligner prix et devise
+
+##### Features list
+- **Checkmarks redesign** : cercles colorés (`w-5 h-5 rounded-full`) avec check inside
+  - Popular : `bg-[#00D4AA]/15` + `text-[#00D4AA]`
+  - Non-popular : `bg-slate-100 dark:bg-slate-800` + `text-slate-500 dark:text-slate-400`
+- **Espacement** : `space-y-3` → `space-y-2.5`
+
+##### Boutons CTA
+- **Hauteur fixe** : `h-12` pour uniformité
+- **Border-radius** : `rounded-full` → `rounded-xl` (cohérent avec les cartes)
+- **Hover** : ajout de `hover:scale-[1.02]` sur le bouton populaire
+- **Dark mode** : `hover:bg-slate-50 dark:hover:bg-slate-800` sur les boutons outline
+
+#### 2. Navbar — Amélioration (`src/app/page.tsx`)
+
+- **Nav items** : `gap-8` → `gap-1` + ajout de `px-4 py-2 rounded-lg hover:bg-muted/50` pour des hit areas élargis avec feedback visuel
+- **CTA spacing** : `gap-3` → `gap-2` pour plus de compacité
+
+#### 3. Hero Section — Corrections (`src/app/page.tsx`)
+
+- **Titre h1** : `leading-tight` → `leading-[1.1] sm:leading-[1.15]` pour meilleur contrôle de l'interligne
+- **Text shadow supprimé** : plus de `textShadow` inline (mieux en CSS pur)
+
+#### 4. Hero Mockup Dashboard Cards (`src/app/page.tsx`)
+
+- **Padding** : `p-4` → `p-3.5` pour meilleure uniformité
+- **Gap** : `gap-3` → `gap-2.5`
+- **Labels** : `text-xs` → `text-[10px] sm:text-xs` avec `leading-none`
+- **Valeurs** : ajout de `leading-none` + `mt-1.5` pour alignement vertical cohérent
+- **Dark mode** : ajout de classes `dark:bg-*`, `dark:text-*`, `dark:border-*` sur les 4 stat cards
+
+#### 5. Floating Cards — Dark mode + Polish (`src/app/page.tsx`)
+
+- **Border-radius** : `rounded-xl` → `rounded-2xl` (cohérent avec le mockup)
+- **Padding** : `p-3` → `p-3.5`
+- **Icon containers** : `rounded-full` → `rounded-xl`, taille `w-8 h-8` → `w-9 h-9`
+- **Dark mode** : ajout de `dark:bg-emerald-900/40`, `dark:text-emerald-400`, `dark:border-slate-700` etc.
+- **Texte** : `text-slate-700` → `text-slate-600 dark:text-slate-300` pour meilleur contraste
+
+#### 6. Dashboard — Welcome Banner (`src/app/dashboard/page.tsx`)
+
+- **Contraste amélioré** : sous-titre `text-white/80` → `text-white/90`
+- **Structure** : ajout de `relative` sur le conteneur flex pour s'assurer que le contenu est au-dessus du pattern overlay
+
+#### 7. Dashboard — Stat Cards (`src/app/dashboard/page.tsx`)
+
+- **Bordure** : `border-l-4` + `borderLeftColor` → `style={{ borderLeft: '4px solid ' + color }}` pour garantir une bordure exacte de 4px
+- **Padding** : `p-4 sm:p-6` → `p-4 sm:p-5` (plus compact)
+- **Valeur** : `mt-1` → `mt-1.5` pour meilleur espacement
+- **Trend badge** : `py-1` → `py-0.5` pour moins de hauteur
+
+#### 8. Dashboard — Quick Actions (`src/app/dashboard/page.tsx`)
+
+- **Hauteur** : `min-h-[72px]` → `min-h-[68px]` (plus compact)
+- **Icones** : `h-11 w-11 sm:h-12 sm:w-12` → `h-10 w-10 sm:h-11 sm:w-11` (plus proportionné)
+- **Description** : `text-xs` → `text-[11px]` avec `leading-tight`
+- **Chevron** : opacité réduite `text-muted-foreground/60` → `/50`
+- **Dark mode** : ajout de `dark:bg-slate-800 dark:text-slate-400`
+
+### État :
+- ✅ ESLint clean (0 erreurs)
+- ✅ Compilation Next.js OK (toutes les routes)
+- ✅ Aucune nouvelle dépendance ajoutée
+- ✅ Dark mode supporté sur tous les changements
+- ✅ Pricing section : 8/10 (amélioré depuis ~5/10)
+
+### Prochaines étapes :
+1. **Pricing mobile** : vérifier responsive sur 375px
+2. **Dark mode audit** : tester toutes les pages en dark mode
+3. **Auth flow** : corriger le bug d'inscription/accès au dashboard
+4. **Mobile Money** : CinetPay/FedaPay

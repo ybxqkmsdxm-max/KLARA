@@ -62,29 +62,29 @@ function Navbar() {
           </a>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-1">
             <a
               href="#fonctionnalites"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium px-4 py-2 rounded-lg hover:bg-muted/50"
             >
               Fonctionnalités
             </a>
             <a
               href="#tarifs"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium px-4 py-2 rounded-lg hover:bg-muted/50"
             >
               Tarifs
             </a>
             <a
               href="#comment"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium px-4 py-2 rounded-lg hover:bg-muted/50"
             >
               Comment ça marche
             </a>
           </div>
 
           {/* Desktop CTAs */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             <Link href="/dashboard">
               <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Se connecter
@@ -157,7 +157,7 @@ function Hero() {
             </div>
 
             {/* Titre */}
-            <h1 className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-[1.1] sm:leading-[1.15] mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
                 faites{" "}
@@ -248,16 +248,16 @@ function Hero() {
               {/* Faux dashboard */}
               <div className="space-y-4">
                 {/* StatCards */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {[
-                    { label: "Trésorerie", value: "2 850 000", color: "bg-emerald-50 text-emerald-700 border-emerald-100" },
-                    { label: "En attente", value: "495 600", color: "bg-amber-50 text-amber-700 border-amber-100" },
-                    { label: "En retard", value: "295 000", color: "bg-red-50 text-red-700 border-red-100" },
-                    { label: "Dépenses", value: "1 245 000", color: "bg-slate-50 text-slate-700 border-slate-100" },
+                    { label: "Trésorerie", value: "2 850 000", color: "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900" },
+                    { label: "En attente", value: "495 600", color: "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900" },
+                    { label: "En retard", value: "295 000", color: "bg-red-50 text-red-700 border-red-100 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900" },
+                    { label: "Dépenses", value: "1 245 000", color: "bg-slate-50 text-slate-700 border-slate-100 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700" },
                   ].map((stat) => (
-                    <div key={stat.label} className={`${stat.color} border rounded-xl p-4`}>
-                      <p className="text-xs font-medium opacity-70">{stat.label}</p>
-                      <p className="text-lg font-bold mt-0.5">{stat.value} <span className="text-xs font-semibold opacity-70">FCFA</span></p>
+                    <div key={stat.label} className={`${stat.color} border rounded-xl p-3.5`}> 
+                      <p className="text-[10px] sm:text-xs font-medium opacity-70 leading-none">{stat.label}</p>
+                      <p className="text-sm sm:text-lg font-bold mt-1.5 leading-none">{stat.value} <span className="text-[10px] sm:text-xs font-semibold opacity-60">FCFA</span></p>
                     </div>
                   ))}
                 </div>
@@ -307,26 +307,26 @@ function Hero() {
             </div>
 
             {/* Éléments flottants décoratifs */}
-            <div className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3 animate-float hidden lg:block">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <CreditCard className="w-4 h-4 text-emerald-600" />
+            <div className="absolute -top-4 -right-4 bg-card rounded-2xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3.5 animate-float hidden lg:block">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-700">Paiement reçu</p>
-                  <p className="text-xs text-emerald-600 font-bold">+2 065 000 FCFA</p>
+                  <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300">Paiement reçu</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">+2 065 000 FCFA</p>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3 animate-float hidden lg:block" style={{ animationDelay: "1.5s" }}>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Send className="w-4 h-4 text-amber-600" />
+            <div className="absolute -bottom-4 -left-4 bg-card rounded-2xl shadow-xl shadow-black/10 border border-slate-100 dark:border-slate-700 p-3.5 animate-float hidden lg:block" style={{ animationDelay: "1.5s" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Send className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-700">Relance envoyée</p>
-                  <p className="text-xs text-amber-600 font-bold">J+7 automatique</p>
+                  <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300">Relance envoyée</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-bold">J+7 automatique</p>
                 </div>
               </div>
             </div>
@@ -800,65 +800,66 @@ function PricingSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto items-stretch">
           {plans.map((plan, i) => (
             <Card
               key={i}
-              className={`relative bg-card transition-all duration-300 rounded-2xl overflow-hidden ${
+              className={`relative bg-card transition-all duration-300 rounded-2xl overflow-hidden flex flex-col ${
                 plan.popular
-                  ? "border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 md:scale-105 z-10 ring-4 ring-[#00D4AA]/5"
-                  : "border-slate-200 hover:shadow-lg hover:-translate-y-1"
+                  ? "border-2 border-[#00D4AA] shadow-2xl shadow-[#00D4AA]/15 md:scale-105 z-10"
+                  : "border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1"
               }`}
             >
-              {/* Corner ribbon — Recommandé */}
+              {/* Shimmer border effect (popular only) */}
               {plan.popular && (
-                <div className="absolute top-4 right-4 z-20">
-                  <span className="inline-flex items-center gap-1 bg-[#FFB347] text-[#1A1A2E] text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
-                    <Star className="w-3 h-3 fill-[#1A1A2E] text-[#1A1A2E]" />
-                    Recommandé
-                  </span>
+                <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-[1]">
+                  <div className="absolute inset-0 rounded-2xl animate-shimmer" />
                 </div>
               )}
+              {/* Top badge — Plus populaire */}
               {plan.popular && (
-                <>
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-6 py-1.5 text-sm shadow-lg shadow-[#00D4AA]/30">
-                      ✨ Plus populaire
-                    </Badge>
-                  </div>
-                  {/* Shimmer border effect */}
-                  <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-[1]">
-                    <div className="absolute inset-0 rounded-2xl animate-shimmer" />
-                  </div>
-                </>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-[#00D4AA] text-[#1A1A2E] font-bold px-4 py-0.5 text-[11px] sm:text-xs shadow-lg shadow-[#00D4AA]/30 rounded-full">
+                    ★ Plus populaire
+                  </Badge>
+                </div>
               )}
-              <CardHeader className="text-center pb-4 pt-8 px-6">
-                <h3 className="text-xl font-bold text-[#1A1A2E]">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-                <div className="mt-6">
-                  <span className="text-4xl font-black text-[#1A1A2E] font-[var(--font-plus-jakarta)]">
+              <CardHeader className="text-center pb-2 pt-10 sm:pt-12 px-6">
+                <h3 className="text-xl font-bold text-[#1A1A2E] font-[var(--font-plus-jakarta)]">{plan.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1.5">{plan.description}</p>
+              </CardHeader>
+              <CardContent className="px-6 pb-4 flex-1">
+                {/* Price block */}
+                <div className="flex items-baseline justify-center gap-1 mb-6">
+                  {plan.price !== "0" && (
+                    <span className="text-sm font-semibold text-muted-foreground self-start mt-1">XOF</span>
+                  )}
+                  <span className="text-4xl sm:text-5xl font-black text-[#1A1A2E] font-[var(--font-plus-jakarta)] tracking-tight">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
                 </div>
-              </CardHeader>
-              <CardContent className="px-6 pb-6">
-                <ul className="space-y-3">
+                <p className={`text-center text-sm font-medium mb-6 ${plan.popular ? 'text-[#00D4AA]' : 'text-muted-foreground'}`}>
+                  {plan.period}
+                </p>
+                {/* Features */}
+                <ul className="space-y-2.5">
                   {plan.features.map((feature, j) => (
                     <li key={j} className={`flex items-center gap-3 text-sm ${plan.popular ? 'animate-count-up' : ''}`} style={{ animationDelay: `${j * 0.05}s` }}>
-                      <Check className="w-4 h-4 text-[#00D4AA] flex-shrink-0" />
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${plan.popular ? 'bg-[#00D4AA]/15' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                        <Check className={`w-3 h-3 ${plan.popular ? 'text-[#00D4AA]' : 'text-slate-500 dark:text-slate-400'}`} />
+                      </div>
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
-              <CardFooter className="px-6 pb-8">
+              <CardFooter className="px-6 pb-8 pt-2">
                 <Button
                   variant={plan.ctaVariant}
-                  className={`w-full rounded-full font-semibold py-5 ${
+                  className={`w-full rounded-xl font-semibold h-12 text-sm transition-all duration-200 ${
                     plan.popular
-                      ? "bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] shadow-lg shadow-[#00D4AA]/20"
-                      : "border-slate-200 text-[#1A1A2E]"
+                      ? "bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] shadow-lg shadow-[#00D4AA]/20 hover:shadow-xl hover:shadow-[#00D4AA]/25 hover:scale-[1.02]"
+                      : "border-slate-200 dark:border-slate-700 text-[#1A1A2E] hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   {plan.cta}

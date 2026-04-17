@@ -101,13 +101,13 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200 border-l-4" style={{ borderLeftColor: color }}>
+    <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200" style={{ borderLeft: '4px solid ' + color }}>
       {/* Decorative gradient blob for visual depth */}
       <div
         className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 pointer-events-none blur-2xl"
         style={{ background: `radial-gradient(circle, ${color}25, transparent 70%)` }}
       />
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs lg:text-sm text-muted-foreground font-semibold">{title}</p>
@@ -115,11 +115,11 @@ function StatCard({
               <Skeleton className="h-8 w-28 mt-2" />
             ) : (
               <>
-                <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 break-words font-mono tabular-nums leading-snug">{value}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1.5 break-words font-mono tabular-nums leading-snug">{value}</p>
                 {trend !== undefined && (
                   <div className="mt-2">
                     <span
-                      className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
+                      className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
                         trend >= 0
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
                           : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
@@ -224,15 +224,15 @@ function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: ()
       </div>
       <button
         onClick={onDismiss}
-        className="absolute top-3 right-3 h-7 w-7 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 transition-colors"
+        className="absolute top-3 right-3 h-8 w-8 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 transition-colors"
       >
         <X className="h-3.5 w-3.5 text-white/80" />
         <span className="sr-only">Fermer</span>
       </button>
-      <div className="flex items-center justify-between gap-4">
+      <div className="relative flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl lg:text-2xl font-bold">Bonjour, Aminata</h2>
-          <p className="text-sm lg:text-base text-white/80 mt-1">
+          <h2 className="text-xl lg:text-2xl font-bold text-white">Bonjour, Aminata</h2>
+          <p className="text-sm lg:text-base text-white/90 mt-1">
             Voici un résumé de votre activité
           </p>
         </div>
@@ -299,15 +299,15 @@ function QuickActionsRow() {
             className="flex-shrink-0 w-40 lg:w-auto snap-start"
           >
             <Card className={`group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-border/50 hover:border-border h-full border-l-4 ${action.color}`}>
-              <CardContent className="p-4 flex items-center gap-3 min-h-[72px]">
-                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-600 transition-transform duration-200 group-hover:scale-110">
+              <CardContent className="p-4 flex items-center gap-3 min-h-[68px]">
+                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 transition-transform duration-200 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold leading-tight">{action.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{action.description}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{action.description}</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors shrink-0" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
               </CardContent>
             </Card>
           </Link>
