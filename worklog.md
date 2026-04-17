@@ -1453,3 +1453,164 @@ Répondre à la demande utilisateur : review CSS et utilisation du site. Analyse
 2. **Dark mode audit** : tester toutes les pages en dark mode
 3. **Auth flow** : corriger le bug d'inscription/accès au dashboard
 4. **Mobile Money** : CinetPay/FedaPay
+
+---
+
+## Session 20 — Sécurité & Architecture (Audit v1)
+
+### Objectif :
+Résoudre les bloquants critiques identifiés par l'audit complet v1 : zéro authentification, org hardcodé, validation absente, logging en production, N+1 queries, et bugs mineurs.
+
+### Modifications apportées :
+
+#### 1. Schéma Prisma — Auth + Types (`prisma/schema.prisma`)
+- `Organization.clerkOrgId` : `String @unique` → `String? @unique` (optionnel, plus de dépendance Clerk)
+- `User.clerkUserId` : `String @unique` → `String? @unique` (optionnel)
+- `User.password` : nouveau champ `String?` pour le hash bcrypt
+- `User.email` : ajout de `@unique`
+- `InvoiceItem.quantity` : `Int` → `Float` (supporte les quantités décimales : 1.5h, 2.5kg)
+- `QuoteItem.quantity` : `Int` → `Float` (même correction)
+- Base réinitialisée + seed relancé avec succès
+
+#### 2. Authentification NextAuth.js v4
+- **`src/lib/auth.ts`** : Configuration NextAuth complète
+  - Credentials provider (email + password)
+  - bcrypt.compare pour la vérification du mot de passe
+  - JWT callbacks : injection de `id`, `role`, `organizationId`, `organizationName`
+  - Session callbacks : propagation vers le client
+  - Pages : signIn → `/login`
+- **`src/types/next-auth.d.ts`** : Augmentation des types NextAuth (User, Session, JWT)
+- **`src/app/api/auth/[...nextauth]/route.ts`** : Handler GET + POST
+- **`src/components/auth-provider.tsx`** : Client wrapper `<SessionProvider>`
+- **`src/app/layout.tsx`** : Enveloppé `{children}` dans `<NextAuthProvider>`
+- **`.env`** : Ajout de `NEXTAUTH_SECRET` et `NEXTAUTH_URL`
+
+#### 3. Inscription (`src/app/api/auth/register/route.ts`)
+- POST endpoint avec validation Zod complète
+- Champs : name, email, password, organizationName, sector
+- Vérification doublon email (409 si existant)
+- Hash bcrypt (12 rounds)
+- Création auto de l'organisation + utilisateur OWNER
+- Essai de 14 jours (trialEndsAt)
+
+#### 4. Pages d'authentification
+- **`src/app/(auth)/layout.tsx`** : Layout split-screen
+  - Panel gauche (desktop) : branding KLARA + 3 features (Facturation, Mobile Money, Relances)
+  - Panel droite : formulaire centré avec gradient bg
+  - Mobile : logo + formulaire plein écran
+- **`src/app/(auth)/login/page.tsx`** : Connexion
+  - Email + password avec icônes Mail/Lock
+  - Toggle show/hide password (Eye/EyeOff)
+  - Loading state + toast erreur
+  - signIn('credentials') avec redirect vers /dashboard
+  - Lien "Mot de passe oublié ?" + lien inscription
+  - Encart identifiants démo
+- **`src/app/(auth)/register/page.tsx`** : Inscription
+  - 5 champs : Nom, Email, Password, Organisation, Secteur (Select)
+  - Validation client-side inline
+  - POST /api/auth/register → auto sign-in → redirect /dashboard
+  - Erreurs affichées inline + toast
+
+#### 5. Middleware (`src/middleware.ts`)
+- Protection de toutes les routes `/dashboard/*` et `/api/*` (sauf auth)
+- Redirect vers `/login` si pas de session
+- Matcher couvrant : dashboard, factures, clients, devis, depenses, rapports, notifications, export
+
+#### 6. Dashboard Layout — Session dynamique (`src/app/dashboard/layout.tsx`)
+- `useSession()` pour récupérer les infos utilisateur
+- Nom, initiales, plan dérivés de la session (remplace "Aminata Mensah" hardcodé)
+- Bouton "Déconnexion" (LogOut icon, signOut → /login) dans le Sheet mobile
+- Toutes les occurrences de "AM" et "Aminata Mensah" remplacées par des valeurs dynamiques
+
+#### 7. Auth Helper (`src/lib/auth-helper.ts`)
+- `getAuthSession()` : helper réutilisable pour toutes les API routes
+- Retourne `{ error, session, organizationId }` ou `{ error: NextResponse 401, session: null, organizationId: null }`
+
+#### 8. Remplacement org_demo_klara — 12 fichiers, 19 occurrences
+Toutes les routes API remplacées :
+| Fichier | Occurrences |
+|---------|------------|
+| `/api/dashboard/stats/route.ts` | 1 → `getAuthSession()` |
+| `/api/factures/route.ts` | 2 → `getAuthSession()` |
+| `/api/factures/[id]/route.ts` | 1 |
+| `/api/factures/[id]/pay/route.ts` | 1 |
+| `/api/clients/route.ts` | 2 |
+| `/api/clients/[id]/route.ts` | 3 |
+| `/api/clients/[id]/payments/route.ts` | 1 |
+| `/api/devis/route.ts` | 2 |
+| `/api/devis/[id]/route.ts` | 1 |
+| `/api/depenses/route.ts` | 2 |
+| `/api/depenses/[id]/route.ts` | 1 |
+| `/api/rapports/route.ts` | 1 |
+| `/api/export/route.ts` | 1 |
+| **Total** | **19 → 0** |
+
+#### 9. Validation Zod sur toutes les routes POST/PUT
+| Route | Schéma |
+|-------|--------|
+| POST /api/auth/register | name, email, password, organizationName, sector |
+| POST /api/factures | clientId, issueDate, dueDate, items[], taxRate |
+| POST /api/factures/[id]/pay | amount, method (enum) |
+| POST /api/clients | name, email, phone, type (enum), taxNumber |
+| PUT /api/clients/[id] | same fields (all optional) |
+| POST /api/devis | clientId, issueDate, expiryDate, items[], taxRate |
+| POST /api/depenses | description, amount, category, date, paymentMethod (enum) |
+- Retour 422 avec `details: { field: [errors] }` en cas d'échec
+
+#### 10. Fix PrismaClient logging (`src/lib/db.ts`)
+- Avant : `log: ['query']` (toujours actif)
+- Après : `...(process.env.NODE_ENV === 'development' && { log: ['query'] })`
+- Plus de fuite SQL en production
+
+#### 11. Fix N+1 queries — `/api/rapports/route.ts`
+- Avant : `for` loop séquentiel sur 6 mois (12 requêtes en série)
+- Après : `Promise.all(Array.from(...))` — 12 requêtes en parallèle
+- Bonus : agrégation initiale en 4 `Promise.all()` (revenue, clients, expenses, invoices)
+
+#### 12. Fix soft-delete — Client queries
+- `/api/dashboard/stats/route.ts` : ajout `deletedAt: null` dans les queries client
+- `/api/rapports/route.ts` : ajout `deletedAt: null` dans les queries client
+- `/api/clients/route.ts` : déjà correct (`deletedAt: null` existant)
+- `/api/clients/[id]/route.ts` : déjà correct
+- `/api/export/route.ts` : déjà correct
+
+#### 13. Seed mis à jour (`prisma/seed.ts`)
+- Ajout `import bcrypt from 'bcryptjs'`
+- Hash du mot de passe démo : `bcrypt.hash('demo1234', 12)`
+- Ajout du champ `password` dans la création du user
+- Console output inclut les identifiants de démo
+
+#### 14. Nettoyage dépendances
+- `next-intl` : supprimé (jamais utilisé)
+- `next-auth` : activé et configuré (était installé mais non utilisé)
+- `bcryptjs` + `@types/bcryptjs` : ajoutés
+
+### État actuel :
+- ✅ ESLint clean (0 erreurs)
+- ✅ Compilation Next.js OK
+- ✅ 0 occurrences de `org_demo_klara` dans le code source
+- ✅ Middleware protège toutes les routes dashboard + API
+- ✅ Routes /login et /register HTTP 200
+- ✅ Auth NextAuth opérationnelle (credentials provider)
+- ✅ Données de démo : aminata@boutique-excellence.tg / demo1234
+- ✅ Zod validation sur 7 endpoints POST/PUT
+- ✅ PrismaClient logging conditionnel (dev only)
+- ✅ N+1 fix (Promise.all) dans /api/rapports
+- ✅ Soft-delete filtré dans toutes les queries client
+- ✅ InvoiceItem/QuoteItem quantity Float
+
+### Score audit mis à jour :
+| Dimension | Avant | Après |
+|-----------|-------|-------|
+| Schéma BDD | 8/10 | 9/10 (+ password, quantity Float) |
+| UI / UX | 7/10 | 8/10 (+ auth pages, logout) |
+| Sécurité | 2/10 | 7/10 (+ auth, middleware, Zod, no SQL log) |
+| Architecture | 6/10 | 8/10 (+ auth-helper, Promise.all, no hardcoded org) |
+
+### Prochaines étapes :
+1. **Migration SQLite → PostgreSQL** (Neon/Supabase) pour production
+2. **Relier les données mock** (notifications, timeline, prévisions) à la BDD
+3. **Intégration Mobile Money** (CinetPay + FedaPay)
+4. **Système de relances automatiques** (cron J+7/J+15/J+30)
+5. **PDF factures** natif
+6. **Dark mode** complet + affinage

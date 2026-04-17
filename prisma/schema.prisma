@@ -1,5 +1,6 @@
 // Schéma KLARA — Gestion financière pour PME UEMOA
 // Toutes les tables incluent organization_id pour le multi-tenant
+// Auth : NextAuth.js v4 avec Credentials provider
 
 generator client {
   provider = "prisma-client-js"
@@ -14,7 +15,7 @@ datasource db {
 
 model Organization {
   id                 String   @id @default(cuid())
-  clerkOrgId         String   @unique
+  clerkOrgId         String?  @unique
   name               String
   email              String?
   phone              String?
@@ -45,8 +46,9 @@ model Organization {
 
 model User {
   id             String   @id @default(cuid())
-  clerkUserId    String   @unique
-  email          String
+  clerkUserId    String?  @unique
+  email          String   @unique
+  password       String?
   name           String?
   avatarUrl      String?
   role           String   @default("MEMBER") // OWNER, ADMIN, MEMBER
@@ -120,7 +122,7 @@ model InvoiceItem {
   id          String  @id @default(cuid())
   invoiceId   String
   description String
-  quantity    Int     @default(1)
+  quantity    Float   @default(1)
   unitPrice   Int     @default(0)
   total       Int     @default(0)
   order       Int     @default(0)
@@ -161,7 +163,7 @@ model QuoteItem {
   id          String  @id @default(cuid())
   quoteId     String
   description String
-  quantity    Int     @default(1)
+  quantity    Float   @default(1)
   unitPrice   Int     @default(0)
   total       Int     @default(0)
   order       Int     @default(0)

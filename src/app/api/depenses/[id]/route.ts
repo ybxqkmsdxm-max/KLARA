@@ -1,41 +1,20 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth-helper";
 
-/**
- * DELETE /api/depenses/[id] - Supprimer une dépense
- */
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error, organizationId } = await getAuthSession();
+    if (error) return error;
+
     const { id } = await params;
+    const expense = await db.expense.findFirst({ where: { id, organizationId } });
+    if (!expense) return NextResponse.json({ error: "Dépense non trouvée" }, { status: 404 });
 
-    const organization = await db.organization.findUnique({
-      where: { clerkOrgId: "org_demo_klara" },
-    });
-    if (!organization) {
-      return NextResponse.json(
-        { error: "Organisation non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    const expense = await db.expense.findFirst({
-      where: { id, organizationId: organization.id },
-    });
-
-    if (!expense) {
-      return NextResponse.json(
-        { error: "Dépense non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    await db.expense.delete({
-      where: { id },
-    });
-
+    await db.expense.delete({ where: { id } });
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("Erreur suppression dépense:", error);

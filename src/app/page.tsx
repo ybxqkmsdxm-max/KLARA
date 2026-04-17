@@ -85,12 +85,12 @@ function Navbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Se connecter
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href="/register">
               <Button className="bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-semibold text-sm px-6 rounded-full shadow-lg shadow-[#00D4AA]/20">
                 Essai gratuit
               </Button>
@@ -183,7 +183,7 @@ function Hero() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Button
                   size="lg"
                   className="bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-bold text-base px-6 py-4 sm:px-8 sm:py-6 rounded-full shadow-xl shadow-[#00D4AA]/25 transition-all hover:shadow-2xl hover:shadow-[#00D4AA]/30 hover:scale-105"
@@ -192,7 +192,7 @@ function Hero() {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button
                   variant="outline"
                   size="lg"
@@ -856,13 +856,16 @@ function PricingSection() {
               <CardFooter className="px-6 pb-8 pt-2">
                 <Button
                   variant={plan.ctaVariant}
+                  asChild
                   className={`w-full rounded-xl font-semibold h-12 text-sm transition-all duration-200 ${
                     plan.popular
                       ? "bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] shadow-lg shadow-[#00D4AA]/20 hover:shadow-xl hover:shadow-[#00D4AA]/25 hover:scale-[1.02]"
                       : "border-slate-200 dark:border-slate-700 text-[#1A1A2E] hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
-                  {plan.cta}
+                  <Link href={plan.popular ? "/register" : "/register"}>
+                    {plan.cta}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -1027,10 +1030,13 @@ function FinalCTA() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
+                asChild
                 className="bg-[#1A1A2E] hover:bg-[#0F0F1E] text-white font-bold text-base sm:text-lg px-8 py-5 sm:px-10 sm:py-6 rounded-full shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
               >
-                Essai gratuit 14 jours
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <Link href="/register">
+                  Essai gratuit 14 jours
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
               </Button>
               <Button
                 size="lg"

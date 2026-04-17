@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import {
   ChevronLeft,
   X,
   Bell,
+  LogOut,
   AlertTriangle,
   CircleDollarSign,
   Clock,
@@ -41,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CommandPalette, CommandPaletteTrigger } from "@/components/command-palette";
 import { PageTransition } from "@/components/page-transition";
+import DashboardAuthGuard from "@/components/dashboard-auth-guard";
 
 const navItems = [
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
@@ -309,15 +312,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pageTitle = getPageTitle(pathname);
+
+  const userName = session?.user?.name || session?.user?.email || 'Utilisateur';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const userPlan = (session as any)?.user?.plan || 'STARTER';
 
   const handleMobileNav = useCallback(() => {
     setMobileOpen(false);
   }, []);
 
   return (
+    <DashboardAuthGuard>
     <TooltipProvider>
       <CommandPalette />
       <div className="min-h-screen flex bg-muted/30">
@@ -384,16 +394,16 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
-                    AM
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Aminata Mensah</p>
+                  <p className="text-sm font-medium truncate">{userName}</p>
                   <Badge
                     variant="secondary"
                     className="mt-0.5 text-[10px] font-bold bg-[#00D4AA]/10 text-[#00D4AA] hover:bg-[#00D4AA]/10"
                   >
-                    BUSINESS
+                    {userPlan}
                   </Badge>
                 </div>
               </div>
@@ -403,7 +413,7 @@ export default function DashboardLayout({
             <div className="border-t border-border p-3 flex justify-center">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
-                  AM
+                  {userInitials}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -443,19 +453,28 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-[#1A1A2E] text-white text-xs font-bold">
-                    AM
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Aminata Mensah</p>
+                  <p className="text-sm font-medium truncate">{userName}</p>
                   <Badge
                     variant="secondary"
                     className="mt-0.5 text-[10px] font-bold bg-[#00D4AA]/10 text-[#00D4AA] hover:bg-[#00D4AA]/10"
                   >
-                    BUSINESS
+                    {userPlan}
                   </Badge>
                 </div>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full mt-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                onClick={() => signOut({ callbackUrl: '/login' })}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
@@ -517,7 +536,7 @@ export default function DashboardLayout({
               {/* Avatar */}
               <Avatar className="h-8 w-8 sm:hidden">
                 <AvatarFallback className="bg-[#1A1A2E] text-white text-[10px] font-bold">
-                  AM
+                  {userInitials}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -559,5 +578,5 @@ export default function DashboardLayout({
         </main>
       </div>
     </TooltipProvider>
-  );
+    </DashboardAuthGuard>
 }

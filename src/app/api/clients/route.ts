@@ -1,24 +1,34 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth-helper";
+import { z } from "zod";
+
+const createClientSchema = z.object({
+  name: z.string().min(1, "Le nom est requis"),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  type: z.enum(["PARTICULIER", "ENTREPRISE"]).default("PARTICULIER"),
+  taxNumber: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 /**
- * GET /api/clients - Liste des clients
+ * GET /api/clients
  */
 export async function GET(request: Request) {
   try {
+    const { error, organizationId } = await getAuthSession();
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type") || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    const organization = await db.organization.findUnique({ where: { clerkOrgId: "org_demo_klara" } });
-    if (!organization) return NextResponse.json({ error: "Organisation non trouvée" }, { status: 404 });
-
-    const where: Record<string, unknown> = {
-      organizationId: organization.id,
-      deletedAt: null,
-    };
+    const where: Record<string, unknown> = { organizationId, deletedAt: null };
     if (search) where.name = { contains: search };
     if (type && type !== "TOUS") where.type = type;
 
@@ -53,25 +63,35 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST /api/clients - Créer un client
+ * POST /api/clients
  */
 export async function POST(request: Request) {
   try {
+    const { error, organizationId } = await getAuthSession();
+    if (error) return error;
+
     const body = await request.json();
-    const { name, email, phone, address, city, type, taxNumber, notes } = body;
+    const result = createClientSchema.safeParse(body);
 
-    if (!name) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Données invalides", details: result.error.flatten().fieldErrors },
+        { status: 422 }
+      );
+    }
 
-    const organization = await db.organization.findUnique({ where: { clerkOrgId: "org_demo_klara" } });
-    if (!organization) return NextResponse.json({ error: "Organisation non trouvée" }, { status: 404 });
-
+    const data = result.data;
     const client = await db.client.create({
       data: {
-        organizationId: organization.id, name,
-        email: email || null, phone: phone || null,
-        address: address || null, city: city || null,
-        type: type || "PARTICULIER",
-        taxNumber: taxNumber || null, notes: notes || null,
+        organizationId,
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        address: data.address || null,
+        city: data.city || null,
+        type: data.type,
+        taxNumber: data.taxNumber || null,
+        notes: data.notes || null,
       },
     });
 

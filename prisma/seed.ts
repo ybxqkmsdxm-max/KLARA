@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -23,11 +24,13 @@ async function main() {
   });
 
   // Utilisateur owner
+  const hashedPassword = await bcrypt.hash('demo1234', 12)
   const user = await prisma.user.create({
     data: {
       clerkUserId: "user_demo_01",
       email: "aminata@boutique-excellence.tg",
       name: "Aminata Mensah",
+      password: hashedPassword,
       role: "OWNER",
       organizationId: org.id,
     },
@@ -326,6 +329,7 @@ async function main() {
   console.log("✅ Données de démo créées avec succès !");
   console.log(`   - 1 organisation : ${org.name}`);
   console.log(`   - 1 utilisateur : ${user.name}`);
+  console.log(`   - Identifiants de démo : aminata@boutique-excellence.tg / demo1234`);
   console.log(`   - 5 clients`);
   console.log(`   - 5 factures`);
   console.log(`   - 2 devis`);

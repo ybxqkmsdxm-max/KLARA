@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import NextAuthProvider from "@/components/auth-provider";
 import "./globals.css";
 
 // Polices KLARA
@@ -63,7 +64,9 @@ export default function RootLayout({
         className={`${plusJakarta.variable} ${dmSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          {children}
+          <NextAuthProvider>
+            {children}
+          </NextAuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>

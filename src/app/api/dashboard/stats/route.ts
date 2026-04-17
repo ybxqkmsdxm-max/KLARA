@@ -1,46 +1,33 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth-helper";
 
 /**
  * GET /api/dashboard/stats
- * Statistiques du tableau de bord pour l'organisation démo
  */
 export async function GET() {
   try {
-    const organization = await db.organization.findUnique({
-      where: { clerkOrgId: "org_demo_klara" },
-    });
-    if (!organization) return NextResponse.json({ error: "Organisation non trouvée" }, { status: 404 });
+    const { error, organizationId } = await getAuthSession();
+    if (error) return error;
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    // Encaissements du mois
-    const paymentsThisMonth = await db.payment.findMany({
-      where: { organizationId: organization.id, status: "CONFIRME", paidAt: { gte: thirtyDaysAgo } },
-    });
+    const [paymentsThisMonth, expensesThisMonth, paymentsPrevMonth, allInvoices, clientsWithInvoices] = await Promise.all([
+      db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: thirtyDaysAgo } } }),
+      db.expense.findMany({ where: { organizationId, date: { gte: thirtyDaysAgo } } }),
+      db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } }),
+      db.invoice.findMany({ where: { organizationId }, include: { client: true, payments: true } }),
+      db.client.findMany({ where: { organizationId, deletedAt: null }, include: { invoices: { where: { organizationId }, include: { payments: true } } } }),
+    ]);
+
     const encaissementsMois = paymentsThisMonth.reduce((s, p) => s + p.amount, 0);
-
-    // Dépenses du mois
-    const expensesThisMonth = await db.expense.findMany({
-      where: { organizationId: organization.id, date: { gte: thirtyDaysAgo } },
-    });
     const depensesMois = expensesThisMonth.reduce((s, e) => s + e.amount, 0);
-
-    // Variation vs mois précédent
-    const paymentsPrevMonth = await db.payment.findMany({
-      where: { organizationId: organization.id, status: "CONFIRME", paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
-    });
     const encaissementsMoisPrecedent = paymentsPrevMonth.reduce((s, p) => s + p.amount, 0);
     const soldeEstime = encaissementsMois - depensesMois;
     const variation = encaissementsMoisPrecedent > 0 ? Math.round(((encaissementsMois - encaissementsMoisPrecedent) / encaissementsMoisPrecedent) * 100) : encaissementsMois > 0 ? 100 : 0;
 
-    // Factures
-    const allInvoices = await db.invoice.findMany({
-      where: { organizationId: organization.id },
-      include: { client: true, payments: true },
-    });
     const enAttente = allInvoices.filter((i) => i.status === "ENVOYEE");
     const enRetard = allInvoices.filter((i) => i.status === "EN_RETARD");
     const payees = allInvoices.filter((i) => i.status === "PAYEE");
@@ -48,11 +35,6 @@ export async function GET() {
     const montantEnAttente = enAttente.reduce((s, i) => s + i.total, 0);
     const tauxRecouvrement = allInvoices.length > 0 ? Math.round((payees.length / allInvoices.length) * 100) : 0;
 
-    // Top clients
-    const clientsWithInvoices = await db.client.findMany({
-      where: { organizationId: organization.id },
-      include: { invoices: { where: { organizationId: organization.id }, include: { payments: true } } },
-    });
     const topClients = clientsWithInvoices
       .map((c) => ({
         clientId: c.id, name: c.name,
@@ -63,21 +45,26 @@ export async function GET() {
       .sort((a, b) => b.totalFacture - a.totalFacture)
       .slice(0, 5);
 
-    // Flux mensuels (6 derniers mois)
-    const fluxMensuels = [];
+    // Flux mensuels — Promise.all() fix for N+1
     const moisNoms = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-      const mp = await db.payment.findMany({ where: { organizationId: organization.id, status: "CONFIRME", paidAt: { gte: start, lt: end } } });
-      const me = await db.expense.findMany({ where: { organizationId: organization.id, date: { gte: start, lt: end } } });
-      fluxMensuels.push({ mois: moisNoms[d.getMonth()], encaissements: mp.reduce((s, p) => s + p.amount, 0), depenses: me.reduce((s, e) => s + e.amount, 0) });
-    }
+    const fluxMensuels = await Promise.all(
+      Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+        return Promise.all([
+          db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: start, lt: end } } }),
+          db.expense.findMany({ where: { organizationId, date: { gte: start, lt: end } } }),
+        ]).then(([mp, me]) => ({
+          mois: moisNoms[d.getMonth()],
+          encaissements: mp.reduce((s, p) => s + p.amount, 0),
+          depenses: me.reduce((s, e) => s + e.amount, 0),
+        }));
+      })
+    );
 
-    // Dernières factures
     const recentInvoices = await db.invoice.findMany({
-      where: { organizationId: organization.id },
+      where: { organizationId },
       include: { client: true },
       orderBy: { createdAt: "desc" },
       take: 5,
