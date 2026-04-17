@@ -157,7 +157,7 @@ function Hero() {
             </div>
 
             {/* Titre */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#1A1A2E] leading-tight mb-6 sm:mb-8 font-[var(--font-plus-jakarta)] animate-fade-in-up" style={{ animationDelay: "0.1s", textShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               Gérez vos finances,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4AA] to-[#00B894]">
                 faites{" "}
@@ -176,7 +176,7 @@ function Hero() {
             </h1>
 
             {/* Sous-titre */}
-            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground/90 mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="text-sm sm:text-base md:text-xl lg:text-2xl text-muted-foreground/90 mb-6 sm:mb-8 md:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               Klara simplifie la facturation, le suivi des dépenses et les relances clients
               pour les PME sans comptable. Payez et encaissez en Mobile Money.
             </p>
@@ -696,11 +696,11 @@ function HowItWorksSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-12">
           {steps.map((step, i) => (
             <div key={i} className="relative text-center group">
               {/* Numéro */}
-              <div className="text-7xl font-black text-[#00D4AA]/10 font-[var(--font-plus-jakarta)] mb-4 group-hover:text-[#00D4AA]/20 transition-colors">
+              <div className="text-5xl sm:text-7xl font-black text-[#00D4AA]/10 font-[var(--font-plus-jakarta)] mb-4 group-hover:text-[#00D4AA]/20 transition-colors">
                 {step.num}
               </div>
 
@@ -958,7 +958,7 @@ function TestimonialsSection() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
-            <Card key={i} className="bg-card border-slate-200 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 rounded-2xl transition-all duration-300">
+            <Card key={i} className="bg-card border-slate-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 rounded-2xl transition-all duration-300">
               <CardContent className="p-7 md:p-9 relative overflow-hidden">
                 {/* Quotation mark decorative */}
                 <div className="absolute top-3 right-5 text-[#00D4AA] opacity-[0.05] text-8xl font-serif leading-none select-none pointer-events-none">&ldquo;</div>
@@ -1000,8 +1000,10 @@ function TestimonialsSection() {
    ============================================================ */
 function FinalCTA() {
   return (
-    <section className="py-14 md:py-28">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-14 md:py-28 relative overflow-hidden">
+      {/* Subtle radial gradient background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#00D4AA/5_0%,_transparent_70%)] pointer-events-none" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="relative bg-gradient-to-r from-[#00D4AA] via-[#00E8BC] to-[#00D4AA] rounded-3xl p-8 sm:p-10 md:p-16 text-center overflow-hidden animate-gradient-bg shadow-2xl shadow-[#00D4AA]/15">
           {/* Animated glow effect */}
           <div className="absolute -inset-4 bg-[#00D4AA]/20 rounded-3xl blur-2xl animate-pulse" style={{ animationDuration: "4s" }} />
@@ -1069,30 +1071,30 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Produit</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Rapports</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Fonctionnalités</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Tarifs</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Rapports</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Intégrations</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mises à jour</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Ressources</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Centre d&apos;aide</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Blog</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Contact</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">API</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Centre d&apos;aide</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Blog</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Contact</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">API</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/90">Légal</h4>
             <ul className="space-y-2.5 text-sm text-white/50">
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Conditions d&apos;utilisation</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Confidentialité</a></li>
-              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mentions légales</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Conditions d&apos;utilisation</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Confidentialité</a></li>
+              <li><a href="#" className="hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30">Mentions légales</a></li>
             </ul>
           </div>
         </div>
@@ -1107,7 +1109,7 @@ function Footer() {
               <a
                 key={s}
                 href="#"
-                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors duration-300 hover:underline underline-offset-4 decoration-[#00D4AA]/30"
+                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30"
               >
                 {s}
               </a>
@@ -1135,13 +1137,21 @@ export default function KlaraLandingPage() {
     <main className="min-h-screen overflow-x-hidden">
       <Navbar />
       <Hero />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <StatsSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <ProblemSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <FeaturesSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <HowItWorksSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <PricingSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <TrustBarSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <TestimonialsSection />
+      <div className="w-full max-w-xs mx-auto h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <FinalCTA />
       <Footer />
     </main>

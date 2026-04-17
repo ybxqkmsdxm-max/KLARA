@@ -476,8 +476,8 @@ export default function DepensesPage() {
       {!error && (
         <Tabs defaultValue="liste">
           <TabsList className="bg-muted">
-            <TabsTrigger value="liste">Liste</TabsTrigger>
-            <TabsTrigger value="categorie">Par catégorie</TabsTrigger>
+            <TabsTrigger value="liste" className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:text-white">Liste</TabsTrigger>
+            <TabsTrigger value="categorie" className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:text-white">Par catégorie</TabsTrigger>
           </TabsList>
 
           <TabsContent value="liste" className="space-y-4 mt-4">
@@ -617,7 +617,7 @@ export default function DepensesPage() {
                         key={chip.value}
                         onClick={() => handleChipClick(chip.value)}
                         className={cn(
-                          "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0",
+                          "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0",
                           activeChip === chip.value
                             ? "bg-[#1A1A2E] text-white dark:bg-white dark:text-[#1A1A2E]"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"

@@ -243,14 +243,17 @@ function NavContent({
                   href={item.href}
                   onClick={onNavigate}
                   className={cn(
-                    "flex items-center justify-center h-10 rounded-lg transition-all relative",
+                    "flex items-center justify-center h-11 rounded-lg transition-all duration-150 relative",
                     isActive
                       ? "bg-[#00D4AA]/10 text-[#00D4AA]"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-200" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
+                  )}
+                  {isActive && (
+                    <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
                   )}
                   <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
                   {item.badge && (
@@ -271,14 +274,17 @@ function NavContent({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 h-10 px-3 rounded-lg transition-all relative",
+              "flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-150 relative",
               isActive
                 ? "bg-[#00D4AA]/10 text-[#00D4AA]"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-200" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
+            )}
+            {isActive && (
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
             )}
             <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
             <span className="text-sm font-medium truncate">{item.label}</span>
@@ -430,7 +436,9 @@ export default function DashboardLayout({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <NavContent pathname={pathname} collapsed={false} onNavigate={handleMobileNav} />
+            <div className="px-2">
+              <NavContent pathname={pathname} collapsed={false} onNavigate={handleMobileNav} />
+            </div>
             <div className="border-t border-border p-4 mt-auto">
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
@@ -460,7 +468,7 @@ export default function DashboardLayout({
           )}
         >
           {/* Sticky header */}
-          <header className="h-16 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 lg:px-6">
+          <header className="h-16 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex items-center justify-between px-4 lg:px-6 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#00D4AA]/[0.02] before:to-transparent before:pointer-events-none">
             <div className="flex items-center gap-3">
               {/* Mobile menu button */}
               <Button
@@ -534,14 +542,14 @@ export default function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 active:scale-95 relative",
-                      isActive ? "text-[#00D4AA]" : "text-muted-foreground"
+                      "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 active:scale-95 relative rounded-xl mx-1",
+                      isActive ? "text-[#00D4AA] bg-[#00D4AA]/5" : "text-muted-foreground"
                     )}
                   >
                     <Icon className={cn("h-5 w-5 transition-transform duration-200", isActive ? "text-[#00D4AA] scale-110" : "text-muted-foreground")} />
                     <span className={cn("text-[10px] font-medium transition-colors", isActive && "text-[#00D4AA]")}>{item.label}</span>
                     {isActive && (
-                      <span className="absolute top-0 w-8 h-0.5 bg-[#00D4AA] rounded-b-full" />
+                      <span className="absolute top-0 w-12 h-0.5 bg-[#00D4AA] rounded-b-full" />
                     )}
                   </Link>
                 );

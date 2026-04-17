@@ -207,7 +207,7 @@ export default function DevisPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDevis.map((devisItem) => (
                 <Link key={devisItem.id} href={`/dashboard/devis/${devisItem.id}`}>
-                  <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                  <Card className="hover:shadow-md hover:border-[#00D4AA]/20 active:scale-[0.98] transition-all duration-200 cursor-pointer h-full">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0">

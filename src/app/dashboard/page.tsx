@@ -101,13 +101,13 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200">
+    <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200 border-l-4" style={{ borderLeftColor: color }}>
       {/* Decorative gradient blob for visual depth */}
       <div
         className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 pointer-events-none blur-2xl"
         style={{ background: `radial-gradient(circle, ${color}25, transparent 70%)` }}
       />
-      <CardContent className="p-4 lg:p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs lg:text-sm text-muted-foreground font-semibold">{title}</p>
@@ -139,7 +139,7 @@ function StatCard({
             )}
           </div>
           <div
-            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
+            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
             style={{ background: `linear-gradient(135deg, ${color}18, ${color}08)` }}
           >
             <Icon className="h-5 w-5" style={{ color }} />
@@ -224,7 +224,7 @@ function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: ()
       </div>
       <button
         onClick={onDismiss}
-        className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+        className="absolute top-3 right-3 h-7 w-7 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 transition-colors"
       >
         <X className="h-3.5 w-3.5 text-white/80" />
         <span className="sr-only">Fermer</span>
@@ -307,7 +307,7 @@ function QuickActionsRow() {
                   <p className="text-sm font-semibold leading-tight">{action.label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{action.description}</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors shrink-0" />
               </CardContent>
             </Card>
           </Link>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Welcome banner */}
       <WelcomeBanner visible={showWelcome} onDismiss={dismissWelcome} />
 
@@ -402,7 +402,7 @@ export default function DashboardPage() {
 
       {/* Alert factures en retard */}
       {!loading && stats && stats.factures.enRetard > 0 && (
-        <Alert className="border-[#FF6B6B]/20 bg-[#FF6B6B]/5 border-l-4 border-l-[#FF6B6B] px-4">
+        <Alert className="rounded-xl border-[#FF6B6B]/20 bg-[#FF6B6B]/5 border-l-4 border-l-[#FFB347] px-4">
           <AlertTriangle className="h-4 w-4 text-[#FF6B6B] self-center shrink-0" />
           <AlertDescription className="text-sm flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-x-2">
             <span className="break-words">
@@ -477,11 +477,11 @@ export default function DashboardPage() {
       {/* Chart + Taux recouvrement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Flux trésorerie chart */}
-        <Card className="lg:col-span-2 relative overflow-hidden shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.2)]" style={{ background: 'linear-gradient(180deg, rgba(26,26,46,0.03) 0%, transparent 40%)' }}>
+        <Card className="lg:col-span-2 rounded-xl border border-border/50 relative overflow-hidden shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_-30px_40px_-15px_rgba(0,0,0,0.2)]" style={{ background: 'linear-gradient(180deg, rgba(26,26,46,0.03) 0%, transparent 40%)' }}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#00D4AA]" />Flux de trésorerie</CardTitle>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent className="relative p-4 sm:p-6">
             {/* Gradient overlay at bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent pointer-events-none z-10 rounded-b-lg" />
             {loading ? (
@@ -822,11 +822,11 @@ export default function DashboardPage() {
                       <ActIcon className="h-4 w-4" style={{ color: actColor }} />
                     </div>
                     {!isLast && (
-                      <div className="w-px flex-1 bg-border" />
+                      <div className="w-px flex-1 bg-border mx-auto" />
                     )}
                   </div>
                   {/* Content */}
-                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"} -mx-2 px-2 rounded-lg transition-colors group-hover/timeline:bg-muted/40`}>
+                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"} hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors cursor-pointer group-hover/timeline:bg-muted/40`}>
                     <p className="text-sm font-medium">{activity.message}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">{activity.detail}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">{activity.time}</p>

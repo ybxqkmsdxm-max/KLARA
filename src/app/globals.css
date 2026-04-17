@@ -131,6 +131,7 @@
   }
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground;
@@ -141,6 +142,12 @@
     outline-offset: 2px;
     border-radius: 4px;
   }
+}
+
+/* Text selection */
+::selection {
+  background-color: #00D4AA30;
+  color: #1A1A2E;
 }
 
 /* Scrollbar personnalisée */
@@ -157,6 +164,14 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
 }
 
 /* Animation personnalisée */
