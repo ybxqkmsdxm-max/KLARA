@@ -33,13 +33,26 @@ model Organization {
   updatedAt          DateTime @updatedAt
 
   // Relations
-  users       User[]
-  clients     Client[]
-  invoices    Invoice[]
-  quotes      Quote[]
-  expenses    Expense[]
-  payments    Payment[]
-  reminderLogs ReminderLog[]
+  users                    User[]
+  clients                  Client[]
+  invoices                 Invoice[]
+  quotes                   Quote[]
+  expenses                 Expense[]
+  payments                 Payment[]
+  reminderLogs             ReminderLog[]
+  cashTransactions         CashTransaction[]
+  stockItems               StockItem[]
+  stockMovements           StockMovement[]
+  purchaseOrders           PurchaseOrder[]
+  salesTransactions        SalesTransaction[]
+  employees                Employee[]
+  payrollRuns              PayrollRun[]
+  taxDeclarations          TaxDeclaration[]
+  creditLoans              CreditLoan[]
+  activities               Activity[]
+  activityTransfers        ActivityTransfer[]
+  mobileMoneyTransactions  MobileMoneyTransaction[]
+  toolSelection OrganizationToolSelection?
 }
 
 // ==================== UTILISATEUR ====================
@@ -229,4 +242,255 @@ model ReminderLog {
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id])
   invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+// ==================== OUTILS ACTIFS ====================
+
+model OrganizationToolSelection {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  selectedTools  String   @default("[]") // JSON string array
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ==================== CAISSE ====================
+
+model CashTransaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  type           String   @default("ENCAISSEMENT") // ENCAISSEMENT, DECAISSEMENT, REMBOURSEMENT, AJUSTEMENT
+  amount         Int
+  method         String   @default("ESPECES") // ESPECES, MOBILE_MONEY, VIREMENT, CHEQUE, CARTE
+  description    String?
+  reference      String?
+  happenedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, happenedAt])
+}
+
+// ==================== STOCKS ====================
+
+model StockItem {
+  id               String   @id @default(cuid())
+  organizationId   String
+  name             String
+  sku              String?
+  unit             String   @default("u")
+  purchasePrice    Int      @default(0)
+  salePrice        Int      @default(0)
+  quantity         Int      @default(0)
+  lowStockThreshold Int     @default(5)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  movements    StockMovement[]
+
+  @@index([organizationId, name])
+}
+
+model StockMovement {
+  id             String   @id @default(cuid())
+  organizationId String
+  stockItemId    String
+  type           String   @default("ENTREE") // ENTREE, SORTIE, AJUSTEMENT, TRANSFERT
+  quantity       Int
+  unitCost       Int      @default(0)
+  reason         String?
+  happenedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  item         StockItem    @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, happenedAt])
+  @@index([stockItemId])
+}
+
+// ==================== ACHATS ====================
+
+model PurchaseOrder {
+  id             String   @id @default(cuid())
+  organizationId String
+  orderNumber    String
+  supplierName   String
+  status         String   @default("BROUILLON") // BROUILLON, EN_COURS, RECU, PAYE, ANNULE
+  totalAmount    Int      @default(0)
+  paidAmount     Int      @default(0)
+  dueAmount      Int      @default(0)
+  dueDate        DateTime?
+  notes          String?
+  orderedAt      DateTime @default(now())
+  receivedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, orderedAt])
+}
+
+// ==================== VENTES POS ====================
+
+model SalesTransaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  saleNumber     String
+  status         String   @default("CONFIRMEE") // BROUILLON, CONFIRMEE, ANNULEE, REMBOURSEE
+  clientName     String?
+  paymentMethod  String   @default("ESPECES") // ESPECES, MOBILE_MONEY, VIREMENT, CARTE, CREDIT
+  subtotalAmount Int      @default(0)
+  discountAmount Int      @default(0)
+  totalAmount    Int      @default(0)
+  paidAmount     Int      @default(0)
+  soldAt         DateTime @default(now())
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, soldAt])
+}
+
+// ==================== PAIE RH ====================
+
+model Employee {
+  id             String   @id @default(cuid())
+  organizationId String
+  fullName       String
+  roleTitle      String?
+  phone          String?
+  baseSalary     Int      @default(0)
+  status         String   @default("ACTIF") // ACTIF, INACTIF
+  hiredAt        DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, fullName])
+}
+
+model PayrollRun {
+  id             String   @id @default(cuid())
+  organizationId String
+  periodMonth    String // ex: 2026-04
+  status         String   @default("BROUILLON") // BROUILLON, CALCULE, VALIDE, PAYE
+  grossAmount    Int      @default(0)
+  netAmount      Int      @default(0)
+  employeeCount  Int      @default(0)
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, periodMonth])
+}
+
+// ==================== FISCALITE ====================
+
+model TaxDeclaration {
+  id             String   @id @default(cuid())
+  organizationId String
+  periodMonth    String // ex: 2026-04
+  taxType        String   @default("TVA") // TVA, IS, IRPP, CNSS, AUTRE
+  status         String   @default("BROUILLON") // BROUILLON, PRET, VALIDE, DEPOT
+  taxableAmount  Int      @default(0)
+  taxAmount      Int      @default(0)
+  dueDate        DateTime?
+  filedAt        DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, periodMonth])
+}
+
+// ==================== CREDIT ====================
+
+model CreditLoan {
+  id                String   @id @default(cuid())
+  organizationId    String
+  lenderName        String
+  principalAmount   Int
+  ratePercent       Float    @default(0)
+  termMonths        Int      @default(0)
+  monthlyPayment    Int      @default(0)
+  outstandingAmount Int      @default(0)
+  status            String   @default("ACTIF") // ACTIF, SOLDE, EN_RETARD
+  startDate         DateTime @default(now())
+  nextDueDate       DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+}
+
+// ==================== MULTI-ACTIVITES ====================
+
+model Activity {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  type           String?
+  monthlyBudget  Int      @default(0)
+  status         String   @default("ACTIVE") // ACTIVE, PAUSED, CLOSED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, name])
+}
+
+model ActivityTransfer {
+  id               String   @id @default(cuid())
+  organizationId   String
+  fromActivityName String
+  toActivityName   String
+  amount           Int
+  note             String?
+  transferredAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, transferredAt])
+}
+
+// ==================== PAIEMENTS MOBILE MONEY ====================
+
+model MobileMoneyTransaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  direction      String   @default("IN") // IN, OUT
+  operator       String   @default("WAVE") // FLOOZ, TMONEY, WAVE, MTN, ORANGE
+  amount         Int
+  fees           Int      @default(0)
+  phoneNumber    String?
+  externalRef    String?
+  linkedInvoiceId String?
+  status         String   @default("PENDING") // PENDING, CONFIRMED, FAILED, REFUNDED
+  happenedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, happenedAt])
 }

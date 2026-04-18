@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,28 +39,63 @@ import {
   Sparkles,
   Moon,
   Sun,
+  Wrench,
+  HandCoins,
+  Briefcase,
+  Package,
+  ShoppingCart,
+  Calculator,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CommandPalette, CommandPaletteTrigger } from "@/components/command-palette";
 import { PageTransition } from "@/components/page-transition";
 import DashboardAuthGuard from "@/components/dashboard-auth-guard";
 
-const navItems = [
-  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { href: "/dashboard/factures", label: "Factures", icon: FileText, badge: "3" },
-  { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
-  { href: "/dashboard/clients", label: "Clients", icon: Users },
-  { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
-  { href: "/dashboard/rapports", label: "Rapports", icon: BarChart3 },
-  { href: "/dashboard/parametres", label: "Paramètres", icon: Settings },
+const navSections = [
+  {
+    title: "Op\u00e9rations",
+    items: [
+      { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+      { href: "/dashboard/caisse", label: "Caisse", icon: HandCoins },
+      { href: "/dashboard/paiements", label: "Paiements", icon: CreditCard },
+      { href: "/dashboard/ventes", label: "Ventes POS", icon: Briefcase },
+      { href: "/dashboard/factures", label: "Factures", icon: FileText, badge: "3" },
+      { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
+      { href: "/dashboard/clients", label: "Clients", icon: Users },
+      { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
+    ],
+  },
+  {
+    title: "Gestion",
+    items: [
+      { href: "/dashboard/stocks", label: "Stocks", icon: Package },
+      { href: "/dashboard/achats", label: "Achats", icon: ShoppingCart },
+      { href: "/dashboard/paie", label: "Paie RH", icon: Users },
+      { href: "/dashboard/fiscalite", label: "Fiscalité", icon: Calculator },
+    ],
+  },
+  {
+    title: "Pilotage",
+    items: [
+      { href: "/dashboard/credit", label: "Crédit", icon: HandCoins },
+      { href: "/dashboard/activites", label: "Multi-activités", icon: Wrench },
+      { href: "/dashboard/outils", label: "Outils", icon: Wrench },
+      { href: "/dashboard/rapports", label: "Rapports", icon: BarChart3 },
+      { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
+      { href: "/dashboard/parametres", label: "Paramètres", icon: Settings },
+    ],
+  },
 ];
+
+const navItems = navSections.flatMap((section) => section.items);
 
 const mobileNavItems = [
   { href: "/dashboard", label: "Accueil", icon: LayoutDashboard },
+  { href: "/dashboard/caisse", label: "Caisse", icon: HandCoins },
+  { href: "/dashboard/ventes", label: "Ventes", icon: Briefcase },
   { href: "/dashboard/factures", label: "Factures", icon: FileText },
-  { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
   { href: "/dashboard/clients", label: "Clients", icon: Users },
-  { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
 ];
 
 const notifications = [
@@ -210,13 +245,24 @@ function ThemeToggle() {
 
 function getPageTitle(pathname: string): string {
   if (pathname === "/dashboard") return "Tableau de bord";
+  if (pathname.startsWith("/dashboard/caisse")) return "Caisse";
+  if (pathname.startsWith("/dashboard/paiements")) return "Paiements Mobile Money";
+  if (pathname.startsWith("/dashboard/ventes")) return "Ventes POS";
   if (pathname.startsWith("/dashboard/factures/nouvelle")) return "Nouvelle facture";
   if (pathname.startsWith("/dashboard/factures")) return "Factures";
   if (pathname.startsWith("/dashboard/devis/nouveau")) return "Nouveau devis";
   if (pathname.startsWith("/dashboard/devis")) return "Devis";
   if (pathname.startsWith("/dashboard/clients")) return "Clients";
+  if (pathname.startsWith("/dashboard/stocks")) return "Stocks";
+  if (pathname.startsWith("/dashboard/achats")) return "Achats";
   if (pathname.startsWith("/dashboard/depenses")) return "Dépenses";
+  if (pathname.startsWith("/dashboard/paie")) return "Paie RH";
+  if (pathname.startsWith("/dashboard/fiscalite")) return "Fiscalité";
+  if (pathname.startsWith("/dashboard/credit")) return "Crédit";
+  if (pathname.startsWith("/dashboard/activites")) return "Multi-activités";
+  if (pathname.startsWith("/dashboard/outils")) return "Outils";
   if (pathname.startsWith("/dashboard/rapports")) return "Rapports";
+  if (pathname.startsWith("/dashboard/notifications")) return "Notifications";
   if (pathname.startsWith("/dashboard/parametres")) return "Paramètres";
   return "Klara";
 }
@@ -230,78 +276,89 @@ function NavContent({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
+  const sections = collapsed ? [{ title: "", items: navItems }] : navSections;
+
   return (
-    <nav className="flex flex-col gap-1 px-3 py-4">
-      {navItems.map((item) => {
-        const isActive =
-          item.href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname.startsWith(item.href);
-        const Icon = item.icon;
-        return collapsed ? (
-          <TooltipProvider key={item.href} delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex items-center justify-center h-11 rounded-lg transition-all duration-150 relative",
-                    isActive
-                      ? "bg-[#00D4AA]/10 text-[#00D4AA]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
-                  )}
-                  {isActive && (
-                    <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
-                  )}
-                  <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
-                  {item.badge && (
-                    <span className={cn("absolute -bottom-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white" : "bg-muted text-muted-foreground")}>
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="font-medium">
-                {item.label}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-150 relative",
-              isActive
-                ? "bg-[#00D4AA]/10 text-[#00D4AA]"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
-            )}
-            {isActive && (
-              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
-            )}
-            <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
-            <span className="text-sm font-medium truncate">{item.label}</span>
-            {item.badge && (
-              <Badge
-                variant="secondary"
-                className={cn("ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white hover:bg-[#00D4AA]" : "bg-muted text-muted-foreground")}
+    <nav className="flex flex-col gap-3 px-3 py-4">
+      {sections.map((section) => (
+        <div key={section.title || "all"} className="flex flex-col gap-1">
+          {!collapsed && (
+            <p className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
+              {section.title}
+            </p>
+          )}
+          {section.items.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+            const Icon = item.icon;
+            return collapsed ? (
+              <TooltipProvider key={item.href} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={item.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        "flex items-center justify-center h-11 rounded-lg transition-all duration-150 relative",
+                        isActive
+                          ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
+                      )}
+                      {isActive && (
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
+                      )}
+                      <Icon className={cn("h-5 w-5", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
+                      {item.badge && (
+                        <span className={cn("absolute -bottom-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white" : "bg-muted text-muted-foreground")}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="font-medium">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-150 relative",
+                  isActive
+                    ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                {item.badge}
-              </Badge>
-            )}
-          </Link>
-        );
-      })}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-r-full transition-all duration-150" />
+                )}
+                {isActive && (
+                  <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#00D4AA] rounded-l-full transition-all duration-150" />
+                )}
+                <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-[#00D4AA]" : "text-muted-foreground")} />
+                <span className="text-sm font-medium truncate">{item.label}</span>
+                {item.badge && (
+                  <Badge
+                    variant="secondary"
+                    className={cn("ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold", isActive ? "bg-[#00D4AA] text-white hover:bg-[#00D4AA]" : "bg-muted text-muted-foreground")}
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }
@@ -312,7 +369,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -579,4 +635,5 @@ export default function DashboardLayout({
       </div>
     </TooltipProvider>
     </DashboardAuthGuard>
+  );
 }

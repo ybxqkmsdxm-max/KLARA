@@ -59,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         className={`${plusJakarta.variable} ${dmSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >

@@ -50,5 +50,13 @@ test
 prompt
 
 server.log
+# local QA assets and agent context
+/download/
+/upload/
+/agent-ctx/
+klara.tar
+dev-win.log
+.zscripts/*.pid
+
 # Skills directory
 /skills/

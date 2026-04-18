@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ function getStatusStyle(status: string) {
 }
 
 export default function FacturesPage() {
+  const router = useRouter();
   const [factures, setFactures] = useState<Invoice[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -345,46 +347,52 @@ export default function FacturesPage() {
                   <tbody className="divide-y">
                     {filteredFactures.length > 0 ? (
                       filteredFactures.map((facture) => (
-                        <Link
+                        <tr
                           key={facture.id}
-                          href={`/dashboard/factures/${facture.id}`}
-                          className="contents"
+                          className="hover:bg-[#00D4AA]/5 transition-colors cursor-pointer border-l-2 border-l-transparent hover:border-l-[#00D4AA]"
+                          onClick={() => router.push(`/dashboard/factures/${facture.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              router.push(`/dashboard/factures/${facture.id}`);
+                            }
+                          }}
+                          tabIndex={0}
+                          role="link"
                         >
-                          <tr className="hover:bg-[#00D4AA]/5 transition-colors cursor-pointer border-l-2 border-l-transparent hover:border-l-[#00D4AA]">
-                            <td className="px-4 py-3">
-                              <span className="text-sm font-medium">{facture.number}</span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <div>
-                                <p className="text-sm font-medium">{facture.clientName}</p>
-                                {facture.clientEmail && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {facture.clientEmail}
-                                  </p>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-muted-foreground">
-                              {formatDateShort(facture.issueDate)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-muted-foreground">
-                              {formatDateShort(facture.dueDate)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="text-sm font-semibold">
-                                {formatCurrency(facture.total)}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <Badge
-                                variant="secondary"
-                                className={cn("text-[10px] font-medium", getStatusStyle(facture.status))}
-                              >
-                                {getInvoiceStatusLabel(facture.status)}
-                              </Badge>
-                            </td>
-                          </tr>
-                        </Link>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-medium">{facture.number}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div>
+                              <p className="text-sm font-medium">{facture.clientName}</p>
+                              {facture.clientEmail && (
+                                <p className="text-xs text-muted-foreground">
+                                  {facture.clientEmail}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
+                            {formatDateShort(facture.issueDate)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
+                            {formatDateShort(facture.dueDate)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold">
+                              {formatCurrency(facture.total)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge
+                              variant="secondary"
+                              className={cn("text-[10px] font-medium", getStatusStyle(facture.status))}
+                            >
+                              {getInvoiceStatusLabel(facture.status)}
+                            </Badge>
+                          </td>
+                        </tr>
                       ))
                     ) : (
                       <tr>
