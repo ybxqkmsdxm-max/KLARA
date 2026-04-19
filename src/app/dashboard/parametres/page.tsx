@@ -45,7 +45,6 @@ import {
   Hash,
   Coins,
   BarChart3,
-  Invoice,
   CircleDollarSign,
   AlertCircle,
   Info,

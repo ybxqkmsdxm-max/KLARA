@@ -167,8 +167,9 @@ export function getDaysOverdue(dueDate: Date | string): number {
  */
 export function generateInvoiceNumber(existingCount: number): string {
   const year = new Date().getFullYear();
-  const nextNum = (existingCount + 1).toString().padStart(3, "0");
-  return `FAC-${year}-${nextNum}`;
+  const nextNum = (existingCount + 1).toString().padStart(5, "0");
+  const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 4).toUpperCase();
+  return `FAC-${year}-${nextNum}-${suffix}`;
 }
 
 /**
@@ -177,8 +178,9 @@ export function generateInvoiceNumber(existingCount: number): string {
  */
 export function generateQuoteNumber(existingCount: number): string {
   const year = new Date().getFullYear();
-  const nextNum = (existingCount + 1).toString().padStart(3, "0");
-  return `DEV-${year}-${nextNum}`;
+  const nextNum = (existingCount + 1).toString().padStart(5, "0");
+  const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 4).toUpperCase();
+  return `DEV-${year}-${nextNum}-${suffix}`;
 }
 
 /**

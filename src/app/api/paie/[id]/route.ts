@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getAuthSession } from "@/lib/auth-helper";
+import { getAuthSession, requireRole } from "@/lib/auth-helper";
 
 const updateEmployeeSchema = z.object({
   fullName: z.string().min(2).optional(),
@@ -23,8 +23,10 @@ const updatePayrollRunSchema = z.object({
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -92,8 +94,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);

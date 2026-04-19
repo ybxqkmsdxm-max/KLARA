@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
+import { generateQuoteNumber } from "@/lib/formatters";
 import { z } from "zod";
 
 const createQuoteSchema = z.object({
@@ -63,8 +64,7 @@ export async function POST(request: Request) {
     const { clientId, issueDate, expiryDate, items, taxRate, notes } = result.data;
 
     const count = await db.quote.count({ where: { organizationId } });
-    const year = new Date().getFullYear();
-    const number = `DEV-${year}-${(count + 1).toString().padStart(3, "0")}`;
+    const number = generateQuoteNumber(count);
 
     const subtotal = items.reduce((s, item) => s + item.quantity * item.unitPrice, 0);
     const taxAmount = Math.round(subtotal * taxRate / 100);

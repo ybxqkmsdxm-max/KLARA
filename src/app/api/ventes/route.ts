@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       };
     }
 
-    const [items, total, aggregate] = await Promise.all([
+    const [items, total, totals, cancelled] = await Promise.all([
       db.salesTransaction.findMany({
         where,
         orderBy: { [sortBy]: sortDir },
@@ -59,18 +59,23 @@ export async function GET(request: Request) {
         take: limit,
       }),
       db.salesTransaction.count({ where }),
-      db.salesTransaction.findMany({ where }),
+      db.salesTransaction.aggregate({
+        where,
+        _sum: {
+          totalAmount: true,
+          paidAmount: true,
+        },
+      }),
+      db.salesTransaction.count({
+        where: { ...where, status: "ANNULEE" },
+      }),
     ]);
 
-    const stats = aggregate.reduce(
-      (acc, sale) => {
-        acc.totalVentes += sale.totalAmount;
-        acc.totalEncaisse += sale.paidAmount;
-        if (sale.status === "ANNULEE") acc.cancelled += 1;
-        return acc;
-      },
-      { totalVentes: 0, totalEncaisse: 0, cancelled: 0 }
-    );
+    const stats = {
+      totalVentes: totals._sum.totalAmount ?? 0,
+      totalEncaisse: totals._sum.paidAmount ?? 0,
+      cancelled,
+    };
 
     return NextResponse.json({
       items,

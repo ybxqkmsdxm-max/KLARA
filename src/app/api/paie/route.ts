@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getAuthSession } from "@/lib/auth-helper";
+import { getAuthSession, requireRole } from "@/lib/auth-helper";
 
 const createEmployeeSchema = z.object({
   fullName: z.string().min(2, "Le nom est requis"),
@@ -26,8 +26,10 @@ const MAX_LIMIT = 100;
 
 export async function GET(request: Request) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get("mode") === "PAYROLL_RUN" ? "PAYROLL_RUN" : "EMPLOYEE";
@@ -119,8 +121,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const body = await request.json();
     const mode = body?.mode === "PAYROLL_RUN" ? "PAYROLL_RUN" : "EMPLOYEE";

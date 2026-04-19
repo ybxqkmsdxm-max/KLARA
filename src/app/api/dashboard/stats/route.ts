@@ -1,30 +1,41 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getAuthSession } from "@/lib/auth-helper";
+import { getAuthSession, requireRole } from "@/lib/auth-helper";
 
 /**
  * GET /api/dashboard/stats
  */
 export async function GET() {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
     const [paymentsThisMonth, expensesThisMonth, paymentsPrevMonth, allInvoices, clientsWithInvoices] = await Promise.all([
-      db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: thirtyDaysAgo } } }),
-      db.expense.findMany({ where: { organizationId, date: { gte: thirtyDaysAgo } } }),
-      db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } }),
+      db.payment.aggregate({
+        where: { organizationId, status: "CONFIRME", paidAt: { gte: thirtyDaysAgo } },
+        _sum: { amount: true },
+      }),
+      db.expense.aggregate({
+        where: { organizationId, date: { gte: thirtyDaysAgo } },
+        _sum: { amount: true },
+      }),
+      db.payment.aggregate({
+        where: { organizationId, status: "CONFIRME", paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+        _sum: { amount: true },
+      }),
       db.invoice.findMany({ where: { organizationId }, include: { client: true, payments: true } }),
       db.client.findMany({ where: { organizationId, deletedAt: null }, include: { invoices: { where: { organizationId }, include: { payments: true } } } }),
     ]);
 
-    const encaissementsMois = paymentsThisMonth.reduce((s, p) => s + p.amount, 0);
-    const depensesMois = expensesThisMonth.reduce((s, e) => s + e.amount, 0);
-    const encaissementsMoisPrecedent = paymentsPrevMonth.reduce((s, p) => s + p.amount, 0);
+    const encaissementsMois = paymentsThisMonth._sum.amount ?? 0;
+    const depensesMois = expensesThisMonth._sum.amount ?? 0;
+    const encaissementsMoisPrecedent = paymentsPrevMonth._sum.amount ?? 0;
     const soldeEstime = encaissementsMois - depensesMois;
     const variation = encaissementsMoisPrecedent > 0 ? Math.round(((encaissementsMois - encaissementsMoisPrecedent) / encaissementsMoisPrecedent) * 100) : encaissementsMois > 0 ? 100 : 0;
 
@@ -53,12 +64,18 @@ export async function GET() {
         const start = new Date(d.getFullYear(), d.getMonth(), 1);
         const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
         return Promise.all([
-          db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: start, lt: end } } }),
-          db.expense.findMany({ where: { organizationId, date: { gte: start, lt: end } } }),
+          db.payment.aggregate({
+            where: { organizationId, status: "CONFIRME", paidAt: { gte: start, lt: end } },
+            _sum: { amount: true },
+          }),
+          db.expense.aggregate({
+            where: { organizationId, date: { gte: start, lt: end } },
+            _sum: { amount: true },
+          }),
         ]).then(([mp, me]) => ({
           mois: moisNoms[d.getMonth()],
-          encaissements: mp.reduce((s, p) => s + p.amount, 0),
-          depenses: me.reduce((s, e) => s + e.amount, 0),
+          encaissements: mp._sum.amount ?? 0,
+          depenses: me._sum.amount ?? 0,
         }));
       })
     );
