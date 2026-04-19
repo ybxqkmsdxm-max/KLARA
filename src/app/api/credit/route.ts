@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getAuthSession } from "@/lib/auth-helper";
+import { getAuthSession, requireRole } from "@/lib/auth-helper";
 
 const createLoanSchema = z.object({
   lenderName: z.string().min(1, "Le preteur est requis"),
@@ -21,8 +21,10 @@ const MAX_LIMIT = 100;
 
 export async function GET(request: Request) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
@@ -71,8 +73,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const body = await request.json();
     const parsed = createLoanSchema.safeParse(body);

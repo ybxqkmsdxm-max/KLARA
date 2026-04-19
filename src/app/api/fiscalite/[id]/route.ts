@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getAuthSession } from "@/lib/auth-helper";
+import { getAuthSession, requireRole } from "@/lib/auth-helper";
 
 const updateTaxDeclarationSchema = z.object({
   periodMonth: z.string().min(7).optional(),
@@ -15,8 +15,10 @@ const updateTaxDeclarationSchema = z.object({
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { id } = await params;
     const existing = await db.taxDeclaration.findFirst({ where: { id, organizationId } });
@@ -54,8 +56,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error, organizationId } = await getAuthSession();
+    const { error, organizationId, session } = await getAuthSession();
     if (error) return error;
+    const roleError = await requireRole(organizationId, session.user.id, ["OWNER", "ADMIN"]);
+    if (roleError) return roleError;
 
     const { id } = await params;
     const existing = await db.taxDeclaration.findFirst({ where: { id, organizationId } });
