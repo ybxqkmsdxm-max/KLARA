@@ -3,11 +3,14 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
 
+const cashMethodSchema = z.enum(["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE", "CARTE"]);
+
 const updatePurchaseSchema = z.object({
   supplierName: z.string().min(1).optional(),
   status: z.enum(["BROUILLON", "EN_COURS", "RECU", "PAYE", "ANNULE"]).optional(),
   totalAmount: z.number().int().min(0).optional(),
   paidAmount: z.number().int().min(0).optional(),
+  paymentMethod: cashMethodSchema.optional(),
   dueDate: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   receivedAt: z.string().nullable().optional(),
@@ -34,19 +37,42 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const data = parsed.data;
     const totalAmount = data.totalAmount ?? existing.totalAmount;
     const paidAmount = data.paidAmount ?? existing.paidAmount;
+    const paidDelta = data.paidAmount !== undefined ? data.paidAmount - existing.paidAmount : 0;
+    const cashMethod = data.paymentMethod ?? "ESPECES";
 
-    const item = await db.purchaseOrder.update({
-      where: { id },
-      data: {
-        ...(data.supplierName ? { supplierName: data.supplierName } : {}),
-        ...(data.status ? { status: data.status } : {}),
-        ...(data.totalAmount !== undefined ? { totalAmount: data.totalAmount } : {}),
-        ...(data.paidAmount !== undefined ? { paidAmount: data.paidAmount } : {}),
-        dueAmount: Math.max(0, totalAmount - paidAmount),
-        ...(data.dueDate !== undefined ? { dueDate: data.dueDate ? new Date(data.dueDate) : null } : {}),
-        ...(data.receivedAt !== undefined ? { receivedAt: data.receivedAt ? new Date(data.receivedAt) : null } : {}),
-        ...(data.notes !== undefined ? { notes: data.notes } : {}),
-      },
+    const item = await db.$transaction(async (tx) => {
+      const updated = await tx.purchaseOrder.update({
+        where: { id },
+        data: {
+          ...(data.supplierName ? { supplierName: data.supplierName } : {}),
+          ...(data.status ? { status: data.status } : {}),
+          ...(data.totalAmount !== undefined ? { totalAmount: data.totalAmount } : {}),
+          ...(data.paidAmount !== undefined ? { paidAmount: data.paidAmount } : {}),
+          dueAmount: Math.max(0, totalAmount - paidAmount),
+          ...(data.dueDate !== undefined ? { dueDate: data.dueDate ? new Date(data.dueDate) : null } : {}),
+          ...(data.receivedAt !== undefined ? { receivedAt: data.receivedAt ? new Date(data.receivedAt) : null } : {}),
+          ...(data.notes !== undefined ? { notes: data.notes } : {}),
+        },
+      });
+
+      if (paidDelta !== 0) {
+        await tx.cashTransaction.create({
+          data: {
+            organizationId,
+            type: paidDelta > 0 ? "DECAISSEMENT" : "REMBOURSEMENT",
+            amount: Math.abs(paidDelta),
+            method: cashMethod,
+            description:
+              paidDelta > 0
+                ? `Ajustement paiement achat ${updated.orderNumber}`
+                : `Remboursement achat ${updated.orderNumber}`,
+            reference: updated.orderNumber,
+            happenedAt: new Date(),
+          },
+        });
+      }
+
+      return updated;
     });
 
     return NextResponse.json({ item });

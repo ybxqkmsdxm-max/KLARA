@@ -3,6 +3,14 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
 
+const cashMethodSchema = z.enum(["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE", "CARTE"]);
+
+const saleStockLineSchema = z.object({
+  stockItemId: z.string().min(1, "Article de stock requis"),
+  quantity: z.number().int().positive("Quantite invalide"),
+  reason: z.string().optional(),
+});
+
 const createSaleSchema = z.object({
   clientName: z.string().optional(),
   status: z.enum(["BROUILLON", "CONFIRMEE", "ANNULEE", "REMBOURSEE"]).default("CONFIRMEE"),
@@ -12,10 +20,16 @@ const createSaleSchema = z.object({
   paidAmount: z.number().int().min(0).optional(),
   notes: z.string().optional(),
   soldAt: z.string().optional(),
+  stockItems: z.array(saleStockLineSchema).optional(),
 });
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+
+function mapCashMethod(method: string) {
+  const result = cashMethodSchema.safeParse(method);
+  return result.success ? result.data : "ESPECES";
+}
 
 export async function GET(request: Request) {
   try {
@@ -112,26 +126,95 @@ export async function POST(request: Request) {
     const saleNumber = `VTE-${year}-${(count + 1).toString().padStart(3, "0")}`;
     const totalAmount = Math.max(0, data.subtotalAmount - data.discountAmount);
     const paidAmount = data.paidAmount ?? totalAmount;
+    const stockItems = data.stockItems ?? [];
+    const shouldImpactStock = data.status === "CONFIRMEE" && stockItems.length > 0;
+    const shouldImpactCash = data.status === "CONFIRMEE" && paidAmount > 0;
 
-    const item = await db.salesTransaction.create({
-      data: {
-        organizationId,
-        saleNumber,
-        status: data.status,
-        clientName: data.clientName || null,
-        paymentMethod: data.paymentMethod,
-        subtotalAmount: data.subtotalAmount,
-        discountAmount: data.discountAmount,
-        totalAmount,
-        paidAmount,
-        notes: data.notes || null,
-        soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
-      },
+    const item = await db.$transaction(async (tx) => {
+      if (shouldImpactStock) {
+        const merged = new Map<string, { quantity: number; reason?: string }>();
+        for (const line of stockItems) {
+          const prev = merged.get(line.stockItemId);
+          merged.set(line.stockItemId, {
+            quantity: (prev?.quantity ?? 0) + line.quantity,
+            reason: line.reason || prev?.reason,
+          });
+        }
+
+        const stockIds = Array.from(merged.keys());
+        const existingItems = await tx.stockItem.findMany({
+          where: { id: { in: stockIds }, organizationId, isActive: true },
+        });
+        if (existingItems.length !== stockIds.length) {
+          throw new Error("Un ou plusieurs articles de stock sont introuvables");
+        }
+
+        const byId = new Map(existingItems.map((s) => [s.id, s]));
+        for (const [stockItemId, line] of merged.entries()) {
+          const stock = byId.get(stockItemId);
+          if (!stock || stock.quantity < line.quantity) {
+            throw new Error(`Stock insuffisant pour l'article ${stock?.name ?? stockItemId}`);
+          }
+        }
+
+        for (const [stockItemId, line] of merged.entries()) {
+          const stock = byId.get(stockItemId)!;
+          await tx.stockItem.update({
+            where: { id: stockItemId },
+            data: { quantity: { decrement: line.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              organizationId,
+              stockItemId,
+              type: "SORTIE",
+              quantity: line.quantity,
+              unitCost: stock.purchasePrice,
+              reason: line.reason || `Vente ${saleNumber}`,
+            },
+          });
+        }
+      }
+
+      const createdSale = await tx.salesTransaction.create({
+        data: {
+          organizationId,
+          saleNumber,
+          status: data.status,
+          clientName: data.clientName || null,
+          paymentMethod: data.paymentMethod,
+          subtotalAmount: data.subtotalAmount,
+          discountAmount: data.discountAmount,
+          totalAmount,
+          paidAmount,
+          notes: data.notes || null,
+          soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
+        },
+      });
+
+      if (shouldImpactCash) {
+        await tx.cashTransaction.create({
+          data: {
+            organizationId,
+            type: "ENCAISSEMENT",
+            amount: paidAmount,
+            method: mapCashMethod(data.paymentMethod),
+            description: `Encaissement vente ${saleNumber}`,
+            reference: saleNumber,
+            happenedAt: data.soldAt ? new Date(data.soldAt) : new Date(),
+          },
+        });
+      }
+
+      return createdSale;
     });
 
     return NextResponse.json({ item, sale: item }, { status: 201 });
   } catch (error) {
     console.error("POST /api/ventes error:", error);
+    if (error instanceof Error && error.message.toLowerCase().includes("stock")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }

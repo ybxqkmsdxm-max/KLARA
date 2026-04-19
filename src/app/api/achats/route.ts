@@ -3,11 +3,14 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
 
+const cashMethodSchema = z.enum(["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE", "CARTE"]);
+
 const createPurchaseSchema = z.object({
   supplierName: z.string().min(1, "Le fournisseur est requis"),
   status: z.enum(["BROUILLON", "EN_COURS", "RECU", "PAYE", "ANNULE"]).default("BROUILLON"),
   totalAmount: z.number().int().min(0).default(0),
   paidAmount: z.number().int().min(0).default(0),
+  paymentMethod: cashMethodSchema.default("ESPECES"),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -102,19 +105,38 @@ export async function POST(request: Request) {
     const year = new Date().getFullYear();
     const orderNumber = `ACH-${year}-${(count + 1).toString().padStart(3, "0")}`;
     const dueAmount = Math.max(0, data.totalAmount - data.paidAmount);
+    const shouldImpactCash = data.paidAmount > 0 && data.status !== "ANNULE";
 
-    const item = await db.purchaseOrder.create({
-      data: {
-        organizationId,
-        orderNumber,
-        supplierName: data.supplierName,
-        status: data.status,
-        totalAmount: data.totalAmount,
-        paidAmount: data.paidAmount,
-        dueAmount,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
-        notes: data.notes || null,
-      },
+    const item = await db.$transaction(async (tx) => {
+      const created = await tx.purchaseOrder.create({
+        data: {
+          organizationId,
+          orderNumber,
+          supplierName: data.supplierName,
+          status: data.status,
+          totalAmount: data.totalAmount,
+          paidAmount: data.paidAmount,
+          dueAmount,
+          dueDate: data.dueDate ? new Date(data.dueDate) : null,
+          notes: data.notes || null,
+        },
+      });
+
+      if (shouldImpactCash) {
+        await tx.cashTransaction.create({
+          data: {
+            organizationId,
+            type: "DECAISSEMENT",
+            amount: data.paidAmount,
+            method: data.paymentMethod,
+            description: `Paiement achat ${orderNumber} - ${data.supplierName}`,
+            reference: orderNumber,
+            happenedAt: new Date(),
+          },
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json({ item, order: item }, { status: 201 });

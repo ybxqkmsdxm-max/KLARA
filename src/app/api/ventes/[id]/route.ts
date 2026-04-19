@@ -3,6 +3,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
 
+const cashMethodSchema = z.enum(["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE", "CARTE"]);
+
 const updateSaleSchema = z.object({
   clientName: z.string().nullable().optional(),
   status: z.enum(["BROUILLON", "CONFIRMEE", "ANNULEE", "REMBOURSEE"]).optional(),
@@ -13,6 +15,11 @@ const updateSaleSchema = z.object({
   notes: z.string().nullable().optional(),
   soldAt: z.string().optional(),
 });
+
+function mapCashMethod(method: string) {
+  const result = cashMethodSchema.safeParse(method);
+  return result.success ? result.data : "ESPECES";
+}
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,20 +44,44 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const discountAmount = data.discountAmount ?? existing.discountAmount;
     const totalAmount = Math.max(0, subtotalAmount - discountAmount);
     const paidAmount = data.paidAmount ?? existing.paidAmount;
+    const paidDelta = data.paidAmount !== undefined ? data.paidAmount - existing.paidAmount : 0;
+    const nextStatus = data.status ?? existing.status;
+    const nextMethod = data.paymentMethod ?? existing.paymentMethod;
 
-    const item = await db.salesTransaction.update({
-      where: { id },
-      data: {
-        ...(data.clientName !== undefined ? { clientName: data.clientName } : {}),
-        ...(data.status ? { status: data.status } : {}),
-        ...(data.paymentMethod ? { paymentMethod: data.paymentMethod } : {}),
-        ...(data.subtotalAmount !== undefined ? { subtotalAmount: data.subtotalAmount } : {}),
-        ...(data.discountAmount !== undefined ? { discountAmount: data.discountAmount } : {}),
-        totalAmount,
-        paidAmount,
-        ...(data.notes !== undefined ? { notes: data.notes } : {}),
-        ...(data.soldAt ? { soldAt: new Date(data.soldAt) } : {}),
-      },
+    const item = await db.$transaction(async (tx) => {
+      const updated = await tx.salesTransaction.update({
+        where: { id },
+        data: {
+          ...(data.clientName !== undefined ? { clientName: data.clientName } : {}),
+          ...(data.status ? { status: data.status } : {}),
+          ...(data.paymentMethod ? { paymentMethod: data.paymentMethod } : {}),
+          ...(data.subtotalAmount !== undefined ? { subtotalAmount: data.subtotalAmount } : {}),
+          ...(data.discountAmount !== undefined ? { discountAmount: data.discountAmount } : {}),
+          totalAmount,
+          paidAmount,
+          ...(data.notes !== undefined ? { notes: data.notes } : {}),
+          ...(data.soldAt ? { soldAt: new Date(data.soldAt) } : {}),
+        },
+      });
+
+      if (paidDelta !== 0 && nextStatus === "CONFIRMEE") {
+        await tx.cashTransaction.create({
+          data: {
+            organizationId,
+            type: paidDelta > 0 ? "ENCAISSEMENT" : "REMBOURSEMENT",
+            amount: Math.abs(paidDelta),
+            method: mapCashMethod(nextMethod),
+            description:
+              paidDelta > 0
+                ? `Ajustement encaissement vente ${updated.saleNumber}`
+                : `Remboursement vente ${updated.saleNumber}`,
+            reference: updated.saleNumber,
+            happenedAt: data.soldAt ? new Date(data.soldAt) : new Date(),
+          },
+        });
+      }
+
+      return updated;
     });
 
     return NextResponse.json({ item });
