@@ -301,9 +301,9 @@ function NavContent({
                       href={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "flex items-center justify-center h-11 rounded-lg transition-all duration-150 relative",
+                        "ui-nav-item flex items-center justify-center h-11 rounded-lg transition-all duration-150 relative",
                         isActive
-                          ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                          ? "is-active bg-[#00D4AA]/10 text-[#00D4AA]"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
@@ -332,9 +332,9 @@ function NavContent({
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-150 relative",
+                  "ui-nav-item flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-150 relative",
                   isActive
-                    ? "bg-[#00D4AA]/10 text-[#00D4AA]"
+                    ? "is-active bg-[#00D4AA]/10 text-[#00D4AA]"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
@@ -386,11 +386,11 @@ export default function DashboardLayout({
     <DashboardAuthGuard>
     <TooltipProvider>
       <CommandPalette />
-      <div className="min-h-screen flex bg-muted/30">
+      <div className="ui-shell min-h-screen flex bg-muted/30">
         {/* Desktop Sidebar */}
         <aside
           className={cn(
-            "hidden lg:flex flex-col fixed top-0 left-0 h-screen z-40 bg-background border-r border-border transition-all duration-300",
+            "ui-sidebar hidden lg:flex flex-col fixed top-0 left-0 h-screen z-40 bg-background border-r border-border transition-all duration-300",
             collapsed ? "w-[72px]" : "w-[260px]"
           )}
         >
@@ -543,7 +543,7 @@ export default function DashboardLayout({
           )}
         >
           {/* Sticky header */}
-          <header className="h-16 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex items-center justify-between px-4 lg:px-6 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#00D4AA]/[0.02] before:to-transparent before:pointer-events-none">
+          <header className="ui-topbar h-16 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex items-center justify-between px-4 lg:px-6 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#00D4AA]/[0.02] before:to-transparent before:pointer-events-none">
             <div className="flex items-center gap-3">
               {/* Mobile menu button */}
               <Button
@@ -599,7 +599,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <div className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6" style={{ paddingBottom: 'max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px)))' }}>
+          <div className="ui-content flex-1 p-4 lg:p-6 pb-24 lg:pb-6" style={{ paddingBottom: 'max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px)))' }}>
             <PageTransition>{children}</PageTransition>
           </div>
 

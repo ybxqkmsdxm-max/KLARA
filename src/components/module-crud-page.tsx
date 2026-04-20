@@ -328,10 +328,10 @@ export function ModuleCrudPage({
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4">
+    <div className="ui-module mx-auto max-w-7xl space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold">{title}</h2>
+          <h2 className="ui-title text-xl font-bold">{title}</h2>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -341,7 +341,7 @@ export function ModuleCrudPage({
               Nouveau
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="ui-card sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{editing ? `Modifier ${singularLabel}` : `Nouveau ${singularLabel}`}</DialogTitle>
             </DialogHeader>
@@ -351,7 +351,7 @@ export function ModuleCrudPage({
                   <Label className="mb-1.5 block">{field.label}{field.required ? " *" : ""}</Label>
                   {field.type === "select" ? (
                     <Select value={formValues[field.key] || ""} onValueChange={(value) => setFormValues((prev) => ({ ...prev, [field.key]: value }))}>
-                      <SelectTrigger>
+                      <SelectTrigger className="ui-input">
                         <SelectValue placeholder={`Choisir ${field.label.toLowerCase()}`} />
                       </SelectTrigger>
                       <SelectContent>
@@ -362,12 +362,14 @@ export function ModuleCrudPage({
                     </Select>
                   ) : field.type === "textarea" ? (
                     <Textarea
+                      className="ui-input"
                       value={formValues[field.key] || ""}
                       onChange={(e) => setFormValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
                       placeholder={field.placeholder}
                     />
                   ) : (
                     <Input
+                      className="ui-input"
                       type={field.type}
                       value={formValues[field.key] || ""}
                       onChange={(e) => setFormValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
@@ -394,7 +396,7 @@ export function ModuleCrudPage({
             const value = statsData[stat.key];
             const content = stat.format === "currency" ? formatCurrency(Number(value || 0)) : String(value ?? "-");
             return (
-              <Card key={stat.key}>
+              <Card key={stat.key} className="ui-card">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <p className="text-2xl font-bold">{content}</p>
@@ -405,7 +407,7 @@ export function ModuleCrudPage({
         </div>
       )}
 
-      <Card>
+      <Card className="ui-card">
         <CardHeader>
           <CardTitle className="text-base">Filtres avances</CardTitle>
         </CardHeader>
@@ -414,14 +416,14 @@ export function ModuleCrudPage({
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                className="ui-input pl-9"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 placeholder={searchPlaceholder}
-                className="pl-9"
               />
             </div>
-            <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
-            <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
+            <Input className="ui-input" type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
+            <Input className="ui-input" type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
@@ -434,7 +436,7 @@ export function ModuleCrudPage({
                   setPage(1);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="ui-input">
                   <SelectValue placeholder={filter.label} />
                 </SelectTrigger>
                 <SelectContent>
@@ -447,7 +449,7 @@ export function ModuleCrudPage({
             ))}
 
             <Select value={sortBy} onValueChange={(value) => { setSortBy(value); setPage(1); }}>
-              <SelectTrigger>
+              <SelectTrigger className="ui-input">
                 <SelectValue placeholder="Tri" />
               </SelectTrigger>
               <SelectContent>
@@ -458,7 +460,7 @@ export function ModuleCrudPage({
             </Select>
 
             <Select value={sortDir} onValueChange={(value: "asc" | "desc") => { setSortDir(value); setPage(1); }}>
-              <SelectTrigger>
+              <SelectTrigger className="ui-input">
                 <SelectValue placeholder="Ordre" />
               </SelectTrigger>
               <SelectContent>
@@ -468,7 +470,7 @@ export function ModuleCrudPage({
             </Select>
 
             <Select value={String(limit)} onValueChange={(value) => { setLimit(Number(value)); setPage(1); }}>
-              <SelectTrigger>
+              <SelectTrigger className="ui-input">
                 <SelectValue placeholder="Par page" />
               </SelectTrigger>
               <SelectContent>
@@ -483,7 +485,7 @@ export function ModuleCrudPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="ui-card">
         <CardHeader>
           <CardTitle className="text-base">Liste ({total})</CardTitle>
         </CardHeader>
@@ -499,7 +501,7 @@ export function ModuleCrudPage({
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-sm">
+                <table className="ui-table w-full min-w-[720px] text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
                       {columns.map((column) => (

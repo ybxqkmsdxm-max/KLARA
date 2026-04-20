@@ -100,7 +100,39 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const existing = await db.salesTransaction.findFirst({ where: { id, organizationId } });
     if (!existing) return NextResponse.json({ error: "Vente non trouvee" }, { status: 404 });
 
-    await db.salesTransaction.delete({ where: { id } });
+    await db.$transaction(async (tx) => {
+      const movements = await tx.stockMovement.findMany({
+        where: {
+          organizationId,
+          type: "SORTIE",
+          reason: { contains: existing.saleNumber },
+        },
+      });
+
+      const qtyByStockItem = new Map<string, number>();
+      for (const movement of movements) {
+        qtyByStockItem.set(
+          movement.stockItemId,
+          (qtyByStockItem.get(movement.stockItemId) ?? 0) + movement.quantity
+        );
+      }
+
+      for (const [stockItemId, quantity] of qtyByStockItem.entries()) {
+        await tx.stockItem.update({
+          where: { id: stockItemId },
+          data: { quantity: { increment: quantity } },
+        });
+      }
+
+      if (movements.length > 0) {
+        await tx.stockMovement.deleteMany({
+          where: { id: { in: movements.map((movement) => movement.id) } },
+        });
+      }
+
+      await tx.salesTransaction.delete({ where: { id } });
+    });
+
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("DELETE /api/ventes/[id] error:", error);
