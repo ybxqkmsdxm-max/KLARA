@@ -94,6 +94,7 @@ export default function FacturesPage() {
   }, [activeTab, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFactures();
   }, [fetchFactures]);
 

@@ -255,6 +255,7 @@ export default function RapportsPage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData(dateRange);
   }, [dateRange, fetchData]);
 

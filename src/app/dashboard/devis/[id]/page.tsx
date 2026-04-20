@@ -234,6 +234,7 @@ export default function DevisDetailPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchQuote();
   }, [id, fetchQuote]);
 

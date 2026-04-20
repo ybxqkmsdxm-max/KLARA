@@ -202,6 +202,7 @@ export default function DepensesPage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDepenses();
   }, [fetchDepenses]);
 

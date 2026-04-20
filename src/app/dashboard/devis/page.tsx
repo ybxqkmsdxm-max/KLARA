@@ -94,6 +94,7 @@ export default function DevisPage() {
   }, [activeTab, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDevis();
   }, [fetchDevis]);
 
