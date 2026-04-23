@@ -42,28 +42,26 @@ export async function POST(
 
     const { amount, method, date, reference } = result.data;
 
-    const invoice = await db.invoice.findFirst({
-      where: { id, organizationId },
-      include: { payments: true },
-    });
+    const invoice = await db.invoice.findFirst({ where: { id, organizationId } });
 
     if (!invoice) return NextResponse.json({ error: "Facture non trouvee" }, { status: 404 });
     if (invoice.status === "PAYEE") return NextResponse.json({ error: "Cette facture est deja payee" }, { status: 400 });
     if (invoice.status === "ANNULEE") return NextResponse.json({ error: "Facture annulee" }, { status: 400 });
 
-    const currentPaid = invoice.payments.reduce((sum, p) => sum + p.amount, 0);
+    const currentPaid = invoice.paidAmount;
     if (amount > invoice.total - currentPaid) {
       return NextResponse.json({ error: "Le montant depasse le reste a payer" }, { status: 400 });
     }
 
     const paymentDate = date ? new Date(date) : new Date();
-    const { payment, isFullyPaid } = await db.$transaction(async (tx) => {
+    const { payment, updatedInvoice } = await db.$transaction(async (tx) => {
       const createdPayment = await tx.payment.create({
         data: {
           organizationId,
           invoiceId: invoice.id,
           amount,
           method,
+          status: "CONFIRME",
           paidAt: paymentDate,
           transactionId: reference || null,
         },
@@ -71,8 +69,7 @@ export async function POST(
 
       const newPaid = currentPaid + amount;
       const fullyPaid = newPaid >= invoice.total;
-
-      await tx.invoice.update({
+      const updated = await tx.invoice.update({
         where: { id: invoice.id },
         data: {
           paidAmount: newPaid,
@@ -93,16 +90,14 @@ export async function POST(
         },
       });
 
-      return { payment: createdPayment, isFullyPaid: fullyPaid };
+      return { payment: createdPayment, updatedInvoice: updated };
     });
 
     const updatedPayments = await db.payment.findMany({ where: { invoiceId: invoice.id }, orderBy: { paidAt: "desc" } });
-    const totalPayments = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
-
     return NextResponse.json({
       success: true,
       payment: { id: payment.id, amount: payment.amount, method: payment.method, status: payment.status, paidAt: payment.paidAt.toISOString() },
-      invoice: { id: invoice.id, status: isFullyPaid ? "PAYEE" : invoice.status, paidAmount: totalPayments, total: invoice.total },
+      invoice: { id: updatedInvoice.id, status: updatedInvoice.status, paidAmount: updatedInvoice.paidAmount, total: updatedInvoice.total },
       payments: updatedPayments.map((p) => ({ id: p.id, amount: p.amount, method: p.method, status: p.status, paidAt: p.paidAt.toISOString() })),
     });
   } catch (error) {

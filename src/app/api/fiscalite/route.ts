@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     if (taxType) where.taxType = taxType;
     if (q) where.periodMonth = { contains: q };
 
-    const [items, total, aggregate] = await Promise.all([
+    const [items, total, pending, totalTaxAgg, lastDeclaration] = await Promise.all([
       db.taxDeclaration.findMany({
         where,
         orderBy: [{ [sortBy]: sortDir }, { createdAt: "desc" }],
@@ -46,13 +46,15 @@ export async function GET(request: Request) {
         take: limit,
       }),
       db.taxDeclaration.count({ where }),
-      db.taxDeclaration.findMany({ where: { organizationId } }),
+      db.taxDeclaration.count({ where: { organizationId, status: { not: "DEPOT" } } }),
+      db.taxDeclaration.aggregate({ where: { organizationId }, _sum: { taxAmount: true } }),
+      db.taxDeclaration.findFirst({ where: { organizationId }, orderBy: { periodMonth: "desc" } }),
     ]);
 
     const stats = {
-      pending: aggregate.filter((d) => d.status !== "DEPOT").length,
-      totalTaxAmount: aggregate.reduce((sum, d) => sum + d.taxAmount, 0),
-      lastDeclaration: aggregate.sort((a, b) => b.periodMonth.localeCompare(a.periodMonth))[0] ?? null,
+      pending,
+      totalTaxAmount: totalTaxAgg._sum.taxAmount ?? 0,
+      lastDeclaration: lastDeclaration ?? null,
     };
 
     return NextResponse.json({

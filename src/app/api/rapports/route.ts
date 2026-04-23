@@ -26,9 +26,14 @@ export async function GET(request: Request) {
     };
 
     const dateRange = getDateRange(range);
+    const confirmedPaymentStatuses = ["CONFIRME", "CONFIRMED"];
+
     const invoiceWhere: Record<string, unknown> = { organizationId };
     const expenseWhere: Record<string, unknown> = { organizationId };
-    const paymentWhere: Record<string, unknown> = { organizationId, status: "CONFIRME" };
+    const paymentWhere: Record<string, unknown> = {
+      organizationId,
+      status: { in: confirmedPaymentStatuses },
+    };
 
     if (dateRange) {
       invoiceWhere.issueDate = { gte: dateRange.start, lte: dateRange.end };
@@ -46,7 +51,13 @@ export async function GET(request: Request) {
         const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
         return Promise.all([
           db.invoice.findMany({ where: { organizationId, issueDate: { gte: start, lt: end }, status: { notIn: ["BROUILLON", "ANNULEE"] } } }),
-          db.payment.findMany({ where: { organizationId, status: "CONFIRME", paidAt: { gte: start, lt: end } } }),
+          db.payment.findMany({
+            where: {
+              organizationId,
+              status: { in: confirmedPaymentStatuses },
+              paidAt: { gte: start, lt: end },
+            },
+          }),
         ]).then(([monthInvoices, monthPayments]) => ({
           mois: moisNoms[d.getMonth()],
           moisIndex: d.getMonth(),

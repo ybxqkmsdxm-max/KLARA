@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,6 +84,12 @@ interface DashboardStats {
   }>;
 }
 
+interface TourStep {
+  selector: string;
+  title: string;
+  description: string;
+}
+
 function StatCard({
   title,
   value,
@@ -120,7 +127,7 @@ function StatCard({
               <Skeleton className="h-9 w-32 mt-3" />
             ) : (
               <>
-                <p className="text-2xl lg:text-3xl font-bold mt-2 break-words font-mono tabular-nums leading-tight">{value}</p>
+                <p className="text-2xl lg:text-3xl font-bold mt-2 break-words font-mono tabular-nums leading-tight text-black dark:text-white">{value}</p>
                 {trend !== undefined && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -220,7 +227,15 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   );
 }
 
-function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+function WelcomeBanner({
+  visible,
+  onDismiss,
+  displayName,
+}: {
+  visible: boolean;
+  onDismiss: () => void;
+  displayName: string;
+}) {
   if (!visible) return null;
   return (
     <motion.div
@@ -245,15 +260,17 @@ function WelcomeBanner({ visible, onDismiss }: { visible: boolean; onDismiss: ()
         />
       </div>
       <button
+        type="button"
+        aria-label="Fermer la banniere de bienvenue"
         onClick={onDismiss}
-        className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 transition-all hover:scale-105"
+        className="absolute top-2 right-2 sm:top-3 sm:right-3 z-30 h-12 w-12 sm:h-11 sm:w-11 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 active:scale-95 ring-1 ring-white/30 transition-all hover:scale-105 touch-manipulation"
       >
-        <X className="h-4 w-4 text-white/80" />
+        <X className="h-5 w-5 text-white/90" />
         <span className="sr-only">Fermer</span>
       </button>
       <div className="relative flex items-center justify-between gap-6">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">Bonjour, Aminata</h2>
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">Bonjour, {displayName}</h2>
           <p className="text-base lg:text-lg text-white/90">
             Voici un résumé de votre activité ce mois-ci
           </p>
@@ -304,14 +321,28 @@ const quickActions = [
   },
 ];
 
-// Données mock pour la timeline
-const activities = [
-  { id: 1, type: "payment", message: "Paiement reçu de Togo Télécom", detail: "+2 065 000 FCFA via Mobile Money", time: "Il y a 2h", color: "#00D4AA" },
-  { id: 2, type: "invoice", message: "Facture FAC-2024-003 envoyée", detail: "Restaurant Chez Maman — 495 600 FCFA", time: "Il y a 5h", color: "#3B82F6" },
-  { id: 3, type: "reminder", message: "Relance automatique envoyée", detail: "J-P. Agbéko — FAC-2024-002 (J+7)", time: "Hier", color: "#FFB347" },
-  { id: 4, type: "client", message: "Nouveau client ajouté", detail: "Société Togo Télécom — Entreprise", time: "Il y a 3j", color: "#8B5CF6" },
-  { id: 5, type: "expense", message: "Dépense enregistrée", detail: "Fournitures — 1 200 000 FCFA", time: "Il y a 3j", color: "#FF6B6B" },
-];
+type TimelineActivity = {
+  id: string;
+  type: "invoice";
+  message: string;
+  detail: string;
+  time: string;
+  color: string;
+};
+
+function formatRelativeFromIso(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 60) return `Il y a ${Math.max(1, diffMins)} min`;
+  if (diffHours < 24) return `Il y a ${diffHours}h`;
+  if (diffDays === 1) return "Hier";
+  if (diffDays < 7) return `Il y a ${diffDays}j`;
+  return `Il y a ${Math.floor(diffDays / 7)} sem`;
+}
 
 function QuickActionsRow() {
   return (
@@ -356,17 +387,54 @@ function QuickActionsRow() {
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCards, setShowCards] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem("klara-show-cards") === "true";
+  });
   const [showWelcome, setShowWelcome] = useState(() => {
     if (typeof window === "undefined") return false;
     return !sessionStorage.getItem("klara-welcome-dismissed");
   });
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
+  const [tourTargetRect, setTourTargetRect] = useState<DOMRect | null>(null);
+
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      {
+        selector: '[data-tour="notif-bell"]',
+        title: "Notifications",
+        description: "Retrouvez ici vos alertes importantes et mises à jour récentes.",
+      },
+      {
+        selector: '[data-tour="new-invoice-btn"]',
+        title: "Créer vite une facture",
+        description: "Ce bouton vous permet de démarrer une nouvelle facture immédiatement.",
+      },
+      {
+        selector: '[data-tour="activity-section"]',
+        title: "Activité récente",
+        description: "Cette zone affiche les événements réels de votre compte. Si rien n'apparaît, c'est normal sur un nouveau compte.",
+      },
+    ],
+    []
+  );
 
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false);
     sessionStorage.setItem("klara-welcome-dismissed", "true");
+  }, []);
+
+  const toggleCards = useCallback(() => {
+    setShowCards((prev) => {
+      const next = !prev;
+      sessionStorage.setItem("klara-show-cards", String(next));
+      return next;
+    });
   }, []);
 
   const handleExportCSV = useCallback(() => {
@@ -411,6 +479,88 @@ export default function DashboardPage() {
     fetchStats();
   }, [fetchStats]);
 
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const key = `klara-tour-overlay:${session.user.id}:dashboard:v1`;
+    if (localStorage.getItem(key) !== "done") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTourOpen(true);
+      setTourStepIndex(0);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!tourOpen) return;
+
+    const refreshRect = () => {
+      const step = tourSteps[tourStepIndex];
+      if (!step) return;
+      const targets = Array.from(document.querySelectorAll(step.selector)) as HTMLElement[];
+      const visibleTarget = targets.find((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      }) ?? null;
+      setTourTargetRect(visibleTarget ? visibleTarget.getBoundingClientRect() : null);
+    };
+
+    refreshRect();
+    window.addEventListener("resize", refreshRect);
+    window.addEventListener("scroll", refreshRect, true);
+    return () => {
+      window.removeEventListener("resize", refreshRect);
+      window.removeEventListener("scroll", refreshRect, true);
+    };
+  }, [tourOpen, tourStepIndex, tourSteps]);
+
+  const displayName =
+    session?.user?.name ||
+    (session?.user as { organizationName?: string } | undefined)?.organizationName ||
+    "Utilisateur";
+
+  const recentActivities = useMemo<TimelineActivity[]>(() => {
+    if (!stats?.recentInvoices?.length) return [];
+    return stats.recentInvoices.slice(0, 5).map((inv) => ({
+      id: `invoice-${inv.id}`,
+      type: "invoice",
+      message: `Facture ${inv.number} créée`,
+      detail: `${inv.clientName} — ${formatCurrency(inv.total)}`,
+      time: formatRelativeFromIso(inv.issueDate),
+      color: "#3B82F6",
+    }));
+  }, [stats]);
+
+  const closeTour = () => {
+    if (session?.user?.id) {
+      localStorage.setItem(`klara-tour-overlay:${session.user.id}:dashboard:v1`, "done");
+    }
+    setTourOpen(false);
+  };
+
+  const goNextTourStep = useCallback(() => {
+    if (tourStepIndex >= tourSteps.length - 1) {
+      closeTour();
+      return;
+    }
+    setTourStepIndex((prev) => prev + 1);
+  }, [closeTour, tourStepIndex, tourSteps.length]);
+
+  const currentTourStep = tourSteps[tourStepIndex] ?? null;
+  const tourTooltipStyle = useMemo(() => {
+    if (!tourTargetRect || typeof window === "undefined") {
+      return { top: 120, left: 16 };
+    }
+    const panelWidth = 320;
+    const margin = 16;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    let left = Math.max(margin, Math.min(tourTargetRect.left, viewportWidth - panelWidth - margin));
+    let top = tourTargetRect.bottom + 12;
+    if (top + 220 > viewportHeight) {
+      top = Math.max(margin, tourTargetRect.top - 220);
+    }
+    return { top, left };
+  }, [tourTargetRect]);
+
   if (error && !stats) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -430,10 +580,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Welcome banner */}
-      <WelcomeBanner visible={showWelcome} onDismiss={dismissWelcome} />
+      <WelcomeBanner visible={showWelcome} onDismiss={dismissWelcome} displayName={displayName} />
 
-      {/* Quick actions */}
-      <QuickActionsRow />
+      <div className="flex items-center justify-end">
+        <Button type="button" variant="outline" size="sm" onClick={toggleCards} className="rounded-full">
+          {showCards ? "Masquer les cartes rapides" : "Afficher les cartes rapides"}
+        </Button>
+      </div>
+
+      {showCards && (
+        <>
+          {/* Quick actions */}
+          <QuickActionsRow />
+        </>
+      )}
 
       {/* Alert factures en retard */}
       {!loading && stats && stats.factures.enRetard > 0 && (
@@ -459,7 +619,7 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      {/* Stat cards */}
+      {showCards && (
       <motion.div
         className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
         initial="hidden"
@@ -508,6 +668,7 @@ export default function DashboardPage() {
           />
         </motion.div>
       </motion.div>
+      )}
 
       {/* Chart + Taux recouvrement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -770,7 +931,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Entrées prévues</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-emerald-800 dark:text-emerald-300">3 500 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-black dark:text-white">3 500 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Projeté</span>
@@ -789,7 +950,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-xs font-medium text-orange-700 dark:text-orange-400">Sorties prévues</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-orange-800 dark:text-orange-300">1 800 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-black dark:text-white">1 800 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Projeté</span>
@@ -808,7 +969,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Solde projeté</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-blue-800 dark:text-blue-300">1 700 000 FCFA</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-black dark:text-white">1 700 000 FCFA</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Actual vs Projeté</span>
@@ -824,7 +985,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Activity Timeline */}
-      <Card>
+      <Card data-tour="activity-section">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#00D4AA]" />Activité récente</CardTitle>
           <Link
@@ -835,43 +996,76 @@ export default function DashboardPage() {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="space-y-0">
-            {activities.map((activity, idx) => {
-              const iconMap: Record<string, { icon: React.ElementType; color: string }> = {
-                payment: { icon: ArrowDownLeft, color: activity.color },
-                invoice: { icon: FileText, color: activity.color },
-                reminder: { icon: Bell, color: activity.color },
-                client: { icon: UserPlus, color: activity.color },
-                expense: { icon: TrendingDown, color: activity.color },
-              };
-              const { icon: ActIcon, color: actColor } = iconMap[activity.type];
-              const isLast = idx === activities.length - 1;
-              return (
-                <div key={activity.id} className="relative flex gap-4 group/timeline">
-                  {/* Timeline line + dot */}
-                  <div className="flex flex-col items-center">
-                    <div
-                      className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${actColor}15` }}
-                    >
-                      <ActIcon className="h-4 w-4" style={{ color: actColor }} />
+          {recentActivities.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground text-center">
+              Aucune activité récente pour le moment.
+            </div>
+          ) : (
+            <div className="space-y-0">
+              {recentActivities.map((activity, idx) => {
+                const isLast = idx === recentActivities.length - 1;
+                return (
+                  <div key={activity.id} className="relative flex gap-4 group/timeline">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${activity.color}15` }}
+                      >
+                        <FileText className="h-4 w-4" style={{ color: activity.color }} />
+                      </div>
+                      {!isLast && <div className="w-px flex-1 bg-border mx-auto" />}
                     </div>
-                    {!isLast && (
-                      <div className="w-px flex-1 bg-border mx-auto" />
-                    )}
+                    <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"} hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors`}>
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{activity.detail}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">{activity.time}</p>
+                    </div>
                   </div>
-                  {/* Content */}
-                  <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-5"} hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors cursor-pointer group-hover/timeline:bg-muted/40`}>
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">{activity.detail}</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {tourOpen && currentTourStep && (
+        <div className="fixed inset-0 z-[70]">
+          <div className="absolute inset-0 bg-black/45" />
+          {tourTargetRect && (
+            <div
+              className="absolute rounded-xl border-2 border-[#00D4AA] pointer-events-none"
+              style={{
+                top: tourTargetRect.top - 6,
+                left: tourTargetRect.left - 6,
+                width: tourTargetRect.width + 12,
+                height: tourTargetRect.height + 12,
+                boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.45)",
+              }}
+            />
+          )}
+          <div
+            className="absolute w-[320px] rounded-xl border bg-background p-4 shadow-2xl"
+            style={tourTooltipStyle}
+          >
+            <p className="text-sm font-semibold">{currentTourStep.title}</p>
+            <p className="text-sm text-muted-foreground mt-1">{currentTourStep.description}</p>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                Etape {tourStepIndex + 1}/{tourSteps.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={closeTour}>
+                  Ignorer
+                </Button>
+                <Button type="button" size="sm" onClick={goNextTourStep}>
+                  {tourStepIndex === tourSteps.length - 1 ? "Terminer" : "Suivant"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

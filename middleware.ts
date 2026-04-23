@@ -4,8 +4,10 @@ import { Redis } from "@upstash/redis";
 
 type Bucket = { count: number; resetAt: number };
 
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 12;
+const isProduction = process.env.NODE_ENV === "production";
+const WINDOW_MS = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || "60000");
+const MAX_REQUESTS = Number(process.env.AUTH_RATE_LIMIT_MAX || (isProduction ? "12" : "120"));
+const disableRateLimit = process.env.DISABLE_AUTH_RATE_LIMIT === "true";
 const buckets = new Map<string, Bucket>();
 const RATE_LIMIT_WINDOW_SECONDS = Math.floor(WINDOW_MS / 1000);
 
@@ -18,6 +20,10 @@ const ratelimit = hasUpstashConfig
       prefix: "klara:auth-rate-limit",
     })
   : null;
+
+if (isProduction && !hasUpstashConfig && !disableRateLimit) {
+  console.warn("[rate-limit] Running in local-memory mode in production. Configure Upstash for shared limits.");
+}
 
 function getClientIp(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
@@ -43,6 +49,10 @@ function isLimited(key: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
+  if (disableRateLimit) {
+    return NextResponse.next();
+  }
+
   const ip = getClientIp(request);
   const key = `${ip}:${request.nextUrl.pathname}`;
 
@@ -90,6 +100,9 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   response.headers.set("X-RateLimit-Limit", String(MAX_REQUESTS));
   response.headers.set("X-RateLimit-Mode", "local-memory");
+  if (isProduction) {
+    response.headers.set("X-RateLimit-Warning", "non-distributed");
+  }
   return response;
 }
 

@@ -111,3 +111,5 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }
+
+export const PATCH = PUT;

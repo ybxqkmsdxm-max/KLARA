@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         ];
       }
 
-      const [items, total] = await Promise.all([
+      const [items, total, transferAgg] = await Promise.all([
         db.activityTransfer.findMany({
           where,
           orderBy: { transferredAt: sortDir },
@@ -54,12 +54,16 @@ export async function GET(request: Request) {
           take: limit,
         }),
         db.activityTransfer.count({ where }),
+        db.activityTransfer.aggregate({
+          where: { organizationId },
+          _count: { _all: true },
+          _sum: { amount: true },
+        }),
       ]);
 
-      const allTransfers = await db.activityTransfer.findMany({ where: { organizationId } });
       const stats = {
-        transfersCount: allTransfers.length,
-        totalTransfers: allTransfers.reduce((sum, t) => sum + t.amount, 0),
+        transfersCount: transferAgg._count._all ?? 0,
+        totalTransfers: transferAgg._sum.amount ?? 0,
       };
 
       return NextResponse.json({
@@ -82,7 +86,7 @@ export async function GET(request: Request) {
       ];
     }
 
-    const [items, total, allActivities, allTransfers] = await Promise.all([
+    const [items, total, activeActivities, totalBudgetAgg, totalTransfersAgg] = await Promise.all([
       db.activity.findMany({
         where,
         orderBy: { createdAt: sortDir },
@@ -90,14 +94,15 @@ export async function GET(request: Request) {
         take: limit,
       }),
       db.activity.count({ where }),
-      db.activity.findMany({ where: { organizationId } }),
-      db.activityTransfer.findMany({ where: { organizationId } }),
+      db.activity.count({ where: { organizationId, status: "ACTIVE" } }),
+      db.activity.aggregate({ where: { organizationId }, _sum: { monthlyBudget: true } }),
+      db.activityTransfer.aggregate({ where: { organizationId }, _sum: { amount: true } }),
     ]);
 
     const stats = {
-      activeActivities: allActivities.filter((a) => a.status === "ACTIVE").length,
-      totalBudget: allActivities.reduce((sum, a) => sum + a.monthlyBudget, 0),
-      totalTransfers: allTransfers.reduce((sum, t) => sum + t.amount, 0),
+      activeActivities,
+      totalBudget: totalBudgetAgg._sum.monthlyBudget ?? 0,
+      totalTransfers: totalTransfersAgg._sum.amount ?? 0,
     };
 
     return NextResponse.json({

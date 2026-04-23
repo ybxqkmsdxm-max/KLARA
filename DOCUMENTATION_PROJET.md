@@ -103,14 +103,23 @@ Tables modules MVP ajoutees:
 
 ### 6.3 Modules MVP (backend ajoutes)
 - `GET|POST /api/caisse`
+- `PUT|PATCH|DELETE /api/caisse/[id]`
 - `GET|POST /api/stocks`
+- `PUT|PATCH|DELETE /api/stocks/[id]`
 - `GET|POST /api/achats`
+- `PUT|PATCH|DELETE /api/achats/[id]`
 - `GET|POST /api/ventes`
+- `PUT|PATCH|DELETE /api/ventes/[id]`
 - `GET|POST /api/paie`
+- `PUT|PATCH|DELETE /api/paie/[id]`
 - `GET|POST /api/fiscalite`
+- `PUT|PATCH|DELETE /api/fiscalite/[id]`
 - `GET|POST /api/credit`
+- `PUT|PATCH|DELETE /api/credit/[id]`
 - `GET|POST /api/activites`
+- `PUT|PATCH|DELETE /api/activites/[id]`
 - `GET|POST /api/paiements`
+- `PUT|PATCH|DELETE /api/paiements/[id]`
 
 ---
 
@@ -167,13 +176,12 @@ Valide:
 - Navigation dashboard/outils/modules OK
 - Flux auth + session OK
 - Flux metier coeur (client -> devis -> facture -> paiement -> stats/rapports) OK
-- Flux API des 9 nouveaux modules (`POST` puis `GET`) OK avec compte test authentifie
+- Flux API des 9 nouveaux modules (`GET|POST|PUT|PATCH|DELETE`) OK avec compte test authentifie
 
 ---
 
 ## 11) Limites / prochaines etapes
 - Les pages modules UI ne consomment pas encore toutes les nouvelles APIs (backend pret, branchement UI a finaliser).
-- Ajouter `PUT/DELETE` pour les nouvelles routes modules.
 - Ajouter pagination/filters avances sur nouveaux modules.
 - Ajouter tests automatises e2e (Playwright/API contract).
 
@@ -202,4 +210,3 @@ Valide:
   - `src/app/api/credit/route.ts`
   - `src/app/api/activites/route.ts`
   - `src/app/api/paiements/route.ts`
-

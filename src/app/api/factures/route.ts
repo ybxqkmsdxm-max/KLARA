@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     const [factures, total] = await Promise.all([
       db.invoice.findMany({
         where,
-        include: { client: true, items: true, payments: true },
+        include: { client: true, items: true },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,

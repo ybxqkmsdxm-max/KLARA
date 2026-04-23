@@ -242,16 +242,22 @@ export default function DevisDetailPage() {
     if (!quote) return;
     try {
       setConverting(true);
-      const res = await fetch("/api/factures", {
-        method: "POST",
+      const res = await fetch(`/api/devis/${quote.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromQuoteId: quote.id }),
+        body: JSON.stringify({ convertToInvoice: true }),
       });
       if (res.ok) {
+        const data = await res.json();
         toast.success("Devis converti en facture avec succès !");
-        setQuote({ ...quote, convertedToInvoiceId: "new-invoice" });
+        setQuote({
+          ...quote,
+          status: data.status ?? quote.status,
+          convertedToInvoiceId: data.convertedToInvoiceId ?? quote.convertedToInvoiceId,
+        });
       } else {
-        toast.error("Erreur lors de la conversion");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Erreur lors de la conversion");
       }
     } catch {
       toast.error("Erreur lors de la conversion");

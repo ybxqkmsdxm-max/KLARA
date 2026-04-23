@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -98,64 +98,66 @@ const mobileNavItems = [
   { href: "/dashboard/clients", label: "Clients", icon: Users },
 ];
 
-const notifications = [
-  {
-    id: "1",
-    message: "Facture FAC-2024-002 est en retard depuis 7 jours",
-    time: "Il y a 2h",
-    color: "#FF6B6B",
-    icon: AlertTriangle,
-  },
-  {
-    id: "2",
-    message: "Nouveau paiement reçu : 2 065 000 FCFA",
-    time: "Il y a 5h",
-    color: "#00D4AA",
-    icon: CircleDollarSign,
-  },
-  {
-    id: "3",
-    message: "Rappel : DEV-2024-002 expire dans 3 jours",
-    time: "Il y a 1j",
-    color: "#FFB347",
-    icon: Clock,
-  },
-  {
-    id: "4",
-    message: "Bienvenue sur Klara ! Configurez votre entreprise",
-    time: "Il y a 3j",
-    color: "#3B82F6",
-    icon: Sparkles,
-  },
-];
+type HeaderNotification = {
+  id: string;
+  type: "invoice_overdue" | "payment_received" | "quote_expiring" | "system" | string;
+  title: string;
+  message: string;
+  read: boolean;
+  relativeTime: string;
+  metadata?: Record<string, string>;
+};
 
-const unreadCount = notifications.length;
+const notificationTypeConfig: Record<string, { color: string; icon: React.ElementType }> = {
+  invoice_overdue: { color: "#FF6B6B", icon: AlertTriangle },
+  payment_received: { color: "#00D4AA", icon: CircleDollarSign },
+  quote_expiring: { color: "#FFB347", icon: Clock },
+  system: { color: "#3B82F6", icon: Sparkles },
+};
 
-function NotificationItem({ notification }: { notification: typeof notifications[0] }) {
-  const Icon = notification.icon;
+function NotificationItem({ notification }: { notification: HeaderNotification }) {
+  const config = notificationTypeConfig[notification.type] || notificationTypeConfig.system;
+  const Icon = config.icon;
   return (
     <div
       className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors relative"
     >
       <div
         className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
-        style={{ backgroundColor: notification.color }}
+        style={{ backgroundColor: config.color }}
       />
       <div
         className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-        style={{ backgroundColor: `${notification.color}15` }}
+        style={{ backgroundColor: `${config.color}15` }}
       >
-        <Icon className="h-4 w-4" style={{ color: notification.color }} />
+        <Icon className="h-4 w-4" style={{ color: config.color }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm leading-snug">{notification.message}</p>
-        <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+        <p className="text-xs text-muted-foreground mt-1">{notification.relativeTime}</p>
       </div>
     </div>
   );
 }
 
-function NotificationBellDropdown() {
+function NotificationBellDropdown({
+  notifications,
+  unreadCount,
+  onRefresh,
+}: {
+  notifications: HeaderNotification[];
+  unreadCount: number;
+  onRefresh: () => Promise<void>;
+}) {
+  const markAsRead = async (id: string) => {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationId: id, read: true }),
+    });
+    await onRefresh();
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -176,11 +178,19 @@ function NotificationBellDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea className="max-h-80">
-          {notifications.map((n) => (
-            <DropdownMenuItem key={n.id} className="p-0 cursor-pointer focus:bg-muted/50">
-              <NotificationItem notification={n} />
-            </DropdownMenuItem>
-          ))}
+          {notifications.length > 0 ? (
+            notifications.map((n) => (
+              <DropdownMenuItem
+                key={n.id}
+                className="p-0 cursor-pointer focus:bg-muted/50"
+                onClick={() => markAsRead(n.id)}
+              >
+                <NotificationItem notification={n} />
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <div className="px-4 py-6 text-sm text-muted-foreground text-center">Aucune notification</div>
+          )}
         </ScrollArea>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="p-0">
@@ -193,8 +203,24 @@ function NotificationBellDropdown() {
   );
 }
 
-function NotificationBellSheet() {
+function NotificationBellSheet({
+  notifications,
+  unreadCount,
+  onRefresh,
+}: {
+  notifications: HeaderNotification[];
+  unreadCount: number;
+  onRefresh: () => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
+  const markAsRead = async (id: string) => {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationId: id, read: true }),
+    });
+    await onRefresh();
+  };
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -217,9 +243,20 @@ function NotificationBellSheet() {
         </SheetHeader>
         <ScrollArea className="flex-1 h-[calc(100vh-80px)]">
           <div className="divide-y divide-border">
-            {notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} />
-            ))}
+            {notifications.length > 0 ? (
+              notifications.map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  className="w-full text-left"
+                  onClick={() => markAsRead(n.id)}
+                >
+                  <NotificationItem notification={n} />
+                </button>
+              ))
+            ) : (
+              <div className="px-4 py-6 text-sm text-muted-foreground text-center">Aucune notification</div>
+            )}
           </div>
         </ScrollArea>
       </SheetContent>
@@ -372,6 +409,8 @@ export default function DashboardLayout({
   const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const pageTitle = getPageTitle(pathname);
 
   const userName = session?.user?.name || session?.user?.email || 'Utilisateur';
@@ -381,6 +420,23 @@ export default function DashboardLayout({
   const handleMobileNav = useCallback(() => {
     setMobileOpen(false);
   }, []);
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications?limit=4", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setNotifications(data.notifications ?? []);
+      setUnreadCount(data.unreadCount ?? 0);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    refreshNotifications();
+  }, [refreshNotifications, pathname]);
 
   return (
     <DashboardAuthGuard>
@@ -569,12 +625,12 @@ export default function DashboardLayout({
               {/* Search command palette trigger */}
               <CommandPaletteTrigger className="h-8 w-8 sm:h-9 sm:w-9" />
               {/* Notification bell - mobile (Sheet) */}
-              <div className="lg:hidden">
-                <NotificationBellSheet />
+              <div className="lg:hidden" data-tour="notif-bell">
+                <NotificationBellSheet notifications={notifications} unreadCount={unreadCount} onRefresh={refreshNotifications} />
               </div>
               {/* Notification bell - desktop (Dropdown) */}
-              <div className="hidden lg:block">
-                <NotificationBellDropdown />
+              <div className="hidden lg:block" data-tour="notif-bell">
+                <NotificationBellDropdown notifications={notifications} unreadCount={unreadCount} onRefresh={refreshNotifications} />
               </div>
               {/* Theme toggle */}
               <ThemeToggle />
@@ -584,7 +640,7 @@ export default function DashboardLayout({
                 size="sm"
                 className="bg-[#00D4AA] hover:bg-[#00C19C] text-white text-sm font-medium"
               >
-                <Link href="/dashboard/factures/nouvelle">
+                <Link href="/dashboard/factures/nouvelle" data-tour="new-invoice-btn">
                   <Plus className="h-4 w-4 mr-1.5" />
                   <span className="hidden sm:inline">Nouvelle facture</span>
                 </Link>
@@ -637,3 +693,4 @@ export default function DashboardLayout({
     </DashboardAuthGuard>
   );
 }
+

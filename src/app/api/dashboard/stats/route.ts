@@ -16,9 +16,11 @@ export async function GET() {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
+    const confirmedPaymentStatuses = ["CONFIRME", "CONFIRMED"];
+
     const [paymentsThisMonth, expensesThisMonth, paymentsPrevMonth, allInvoices, clientsWithInvoices] = await Promise.all([
       db.payment.aggregate({
-        where: { organizationId, status: "CONFIRME", paidAt: { gte: thirtyDaysAgo } },
+        where: { organizationId, status: { in: confirmedPaymentStatuses }, paidAt: { gte: thirtyDaysAgo } },
         _sum: { amount: true },
       }),
       db.expense.aggregate({
@@ -26,7 +28,7 @@ export async function GET() {
         _sum: { amount: true },
       }),
       db.payment.aggregate({
-        where: { organizationId, status: "CONFIRME", paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+        where: { organizationId, status: { in: confirmedPaymentStatuses }, paidAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
         _sum: { amount: true },
       }),
       db.invoice.findMany({ where: { organizationId }, include: { client: true, payments: true } }),
@@ -65,7 +67,7 @@ export async function GET() {
         const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
         return Promise.all([
           db.payment.aggregate({
-            where: { organizationId, status: "CONFIRME", paidAt: { gte: start, lt: end } },
+            where: { organizationId, status: { in: confirmedPaymentStatuses }, paidAt: { gte: start, lt: end } },
             _sum: { amount: true },
           }),
           db.expense.aggregate({

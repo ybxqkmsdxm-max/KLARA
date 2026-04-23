@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       };
     }
 
-    const [items, total, aggregate] = await Promise.all([
+    const [items, total, totalAchatsAgg, totalDuesAgg, pending] = await Promise.all([
       db.purchaseOrder.findMany({
         where,
         orderBy: { [sortBy]: sortDir },
@@ -67,18 +67,16 @@ export async function GET(request: Request) {
         take: limit,
       }),
       db.purchaseOrder.count({ where }),
-      db.purchaseOrder.findMany({ where }),
+      db.purchaseOrder.aggregate({ where: { organizationId }, _sum: { totalAmount: true } }),
+      db.purchaseOrder.aggregate({ where: { organizationId }, _sum: { dueAmount: true } }),
+      db.purchaseOrder.count({ where: { organizationId, status: "EN_COURS" } }),
     ]);
 
-    const stats = aggregate.reduce(
-      (acc, order) => {
-        acc.totalAchats += order.totalAmount;
-        acc.totalDues += order.dueAmount;
-        if (order.status === "EN_COURS") acc.pending += 1;
-        return acc;
-      },
-      { totalAchats: 0, totalDues: 0, pending: 0 }
-    );
+    const stats = {
+      totalAchats: totalAchatsAgg._sum.totalAmount ?? 0,
+      totalDues: totalDuesAgg._sum.dueAmount ?? 0,
+      pending,
+    };
 
     return NextResponse.json({
       items,

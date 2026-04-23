@@ -30,28 +30,50 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get("sortBy") === "quantity" ? "quantity" : "createdAt";
     const sortDir = searchParams.get("sortDir") === "asc" ? "asc" : "desc";
 
-    const where: Record<string, unknown> = { organizationId, isActive: true };
+    const baseWhere: Record<string, unknown> = { organizationId, isActive: true };
     if (q) {
-      where.OR = [
+      baseWhere.OR = [
         { name: { contains: q } },
         { sku: { contains: q } },
       ];
     }
 
-    const [allItems] = await Promise.all([
-      db.stockItem.findMany({ where }),
+    // Main path: DB-side sort + pagination.
+    // lowOnly=true needs quantity <= lowStockThreshold (field-to-field comparison), so it stays in memory.
+    const [items, total, statsRows] = await Promise.all([
+      lowOnly
+        ? db.stockItem.findMany({ where: baseWhere })
+        : db.stockItem.findMany({
+            where: baseWhere,
+            orderBy: sortBy === "quantity" ? { quantity: sortDir } : { createdAt: sortDir },
+            skip: (page - 1) * limit,
+            take: limit,
+          }),
+      lowOnly
+        ? db.stockItem.count({ where: baseWhere })
+        : db.stockItem.count({ where: baseWhere }),
+      db.stockItem.findMany({
+        where: { organizationId, isActive: true },
+        select: { quantity: true, purchasePrice: true, lowStockThreshold: true },
+      }),
     ]);
 
-    const filtered = lowOnly ? allItems.filter((item) => item.quantity <= item.lowStockThreshold) : allItems;
-    const sorted = [...filtered].sort((a, b) => {
-      const left = sortBy === "quantity" ? a.quantity : new Date(a.createdAt).getTime();
-      const right = sortBy === "quantity" ? b.quantity : new Date(b.createdAt).getTime();
-      return sortDir === "asc" ? left - right : right - left;
-    });
-    const total = sorted.length;
-    const items = sorted.slice((page - 1) * limit, page * limit);
+    const resolvedItems = lowOnly
+      ? [...items]
+          .filter((item) => item.quantity <= item.lowStockThreshold)
+          .sort((a, b) => {
+            const left = sortBy === "quantity" ? a.quantity : new Date(a.createdAt).getTime();
+            const right = sortBy === "quantity" ? b.quantity : new Date(b.createdAt).getTime();
+            return sortDir === "asc" ? left - right : right - left;
+          })
+          .slice((page - 1) * limit, page * limit)
+      : items;
 
-    const stats = allItems.reduce(
+    const resolvedTotal = lowOnly
+      ? items.filter((item) => item.quantity <= item.lowStockThreshold).length
+      : total;
+
+    const stats = statsRows.reduce(
       (acc, item) => {
         acc.totalItems += 1;
         acc.stockValue += item.quantity * item.purchasePrice;
@@ -62,11 +84,11 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json({
-      items,
-      total,
+      items: resolvedItems,
+      total: resolvedTotal,
       page,
       limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      totalPages: Math.max(1, Math.ceil(resolvedTotal / limit)),
       stats,
     });
   } catch (error) {
