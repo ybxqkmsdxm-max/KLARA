@@ -47,12 +47,25 @@ import {
   Calculator,
   CreditCard,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CommandPalette, CommandPaletteTrigger } from "@/components/command-palette";
 import { PageTransition } from "@/components/page-transition";
 import DashboardAuthGuard from "@/components/dashboard-auth-guard";
 
-const navSections = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+};
+
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+const navSections: NavSection[] = [
   {
     title: "Op\u00e9rations",
     items: [
@@ -60,7 +73,7 @@ const navSections = [
       { href: "/dashboard/caisse", label: "Caisse", icon: HandCoins },
       { href: "/dashboard/paiements", label: "Paiements", icon: CreditCard },
       { href: "/dashboard/ventes", label: "Ventes POS", icon: Briefcase },
-      { href: "/dashboard/factures", label: "Factures", icon: FileText, badge: "3" },
+      { href: "/dashboard/factures", label: "Factures", icon: FileText },
       { href: "/dashboard/devis", label: "Devis", icon: ClipboardList },
       { href: "/dashboard/clients", label: "Clients", icon: Users },
       { href: "/dashboard/depenses", label: "Dépenses", icon: Wallet },
@@ -90,7 +103,7 @@ const navSections = [
 
 const navItems = navSections.flatMap((section) => section.items);
 
-const mobileNavItems = [
+const mobileNavItems: NavItem[] = [
   { href: "/dashboard", label: "Accueil", icon: LayoutDashboard },
   { href: "/dashboard/caisse", label: "Caisse", icon: HandCoins },
   { href: "/dashboard/ventes", label: "Ventes", icon: Briefcase },

@@ -3,6 +3,10 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+const demoEmail = process.env.DEMO_USER_EMAIL || "aminata@boutique-excellence.tg";
+const demoPassword = process.env.DEMO_USER_PASSWORD || "demo1234";
+const demoUserName = process.env.DEMO_USER_NAME || "Aminata Mensah";
+
 async function main() {
   console.log("🌱 Création des données de démo KLARA...");
 
@@ -24,12 +28,12 @@ async function main() {
   });
 
   // Utilisateur owner
-  const hashedPassword = await bcrypt.hash('demo1234', 12)
+  const hashedPassword = await bcrypt.hash(demoPassword, 12)
   const user = await prisma.user.create({
     data: {
       clerkUserId: "user_demo_01",
-      email: "aminata@boutique-excellence.tg",
-      name: "Aminata Mensah",
+      email: demoEmail,
+      name: demoUserName,
       password: hashedPassword,
       role: "OWNER",
       organizationId: org.id,
@@ -329,7 +333,7 @@ async function main() {
   console.log("✅ Données de démo créées avec succès !");
   console.log(`   - 1 organisation : ${org.name}`);
   console.log(`   - 1 utilisateur : ${user.name}`);
-  console.log(`   - Identifiants de démo : aminata@boutique-excellence.tg / demo1234`);
+  console.log(`   - Identifiants de démo : ${demoEmail} / ${demoPassword}`);
   console.log(`   - 5 clients`);
   console.log(`   - 5 factures`);
   console.log(`   - 2 devis`);

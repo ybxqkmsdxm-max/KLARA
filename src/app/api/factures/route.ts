@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth-helper";
 import { generateInvoiceNumber } from "@/lib/formatters";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 const createInvoiceSchema = z.object({
   clientId: z.string().min(1, "Le client est requis"),
@@ -29,11 +30,18 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const search = searchParams.get("search")?.trim() || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    const where: Record<string, unknown> = { organizationId };
+    const where: Prisma.InvoiceWhereInput = { organizationId };
     if (status && status !== "TOUS") where.status = status;
+    if (search) {
+      where.OR = [
+        { number: { contains: search } },
+        { client: { name: { contains: search } } },
+      ];
+    }
 
     const [factures, total] = await Promise.all([
       db.invoice.findMany({

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Mail, Lock, Eye, EyeOff, Loader2, User, Building2, ChevronDown } from 'lucide-react'
@@ -28,8 +28,9 @@ const sectors = [
   { value: 'Autre', label: 'Autre' },
 ]
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -40,6 +41,15 @@ export default function RegisterPage() {
     organizationName: '',
     sector: '',
   })
+  const selectedPlan = useMemo(() => {
+    const plan = searchParams.get('plan')?.toLowerCase()
+    const allowedPlans: Record<string, 'STARTER' | 'BUSINESS' | 'PRO'> = {
+      starter: 'STARTER',
+      business: 'BUSINESS',
+      pro: 'PRO',
+    }
+    return plan && allowedPlans[plan] ? allowedPlans[plan] : 'STARTER'
+  }, [searchParams])
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -72,7 +82,10 @@ export default function RegisterPage() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          plan: selectedPlan,
+        }),
       })
 
       const data = await response.json()
@@ -215,11 +228,11 @@ export default function RegisterPage() {
           {/* Sector */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
-              Secteur d&apos;activité
+              Secteur d&apos;activité (optionnel)
             </Label>
             <Select value={form.sector} onValueChange={(v) => handleChange('sector', v)}>
               <SelectTrigger className="h-11 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10">
-                <SelectValue placeholder="Sélectionnez votre secteur" />
+              <SelectValue placeholder="Sélectionnez votre secteur" />
               </SelectTrigger>
               <SelectContent>
                 {sectors.map((s) => (
@@ -229,6 +242,13 @@ export default function RegisterPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Selected plan */}
+          <div className="rounded-lg border border-[#00D4AA]/20 bg-[#00D4AA]/5 px-3 py-2">
+            <p className="text-xs text-muted-foreground">
+              Plan sélectionné : <span className="font-semibold text-[#1A1A2E] dark:text-white">{selectedPlan}</span>
+            </p>
           </div>
 
           {/* Submit */}
@@ -262,5 +282,13 @@ export default function RegisterPage() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   )
 }

@@ -9,13 +9,13 @@ const WINDOW_MS = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || "60000");
 const MAX_REQUESTS = Number(process.env.AUTH_RATE_LIMIT_MAX || (isProduction ? "12" : "120"));
 const disableRateLimit = process.env.DISABLE_AUTH_RATE_LIMIT === "true";
 const buckets = new Map<string, Bucket>();
-const RATE_LIMIT_WINDOW_SECONDS = Math.floor(WINDOW_MS / 1000);
+const RATE_LIMIT_WINDOW_SECONDS = Math.max(1, Math.ceil(WINDOW_MS / 1000));
 
 const hasUpstashConfig = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 const ratelimit = hasUpstashConfig
   ? new Ratelimit({
       redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(MAX_REQUESTS, "1 m"),
+      limiter: Ratelimit.slidingWindow(MAX_REQUESTS, `${RATE_LIMIT_WINDOW_SECONDS} s`),
       analytics: true,
       prefix: "klara:auth-rate-limit",
     })
@@ -51,6 +51,18 @@ function isLimited(key: string): boolean {
 export async function middleware(request: NextRequest) {
   if (disableRateLimit) {
     return NextResponse.next();
+  }
+
+  if (isProduction && !ratelimit) {
+    return NextResponse.json(
+      { error: "Service temporairement indisponible." },
+      {
+        status: 503,
+        headers: {
+          "X-RateLimit-Error": "upstash-config-missing",
+        },
+      }
+    );
   }
 
   const ip = getClientIp(request);

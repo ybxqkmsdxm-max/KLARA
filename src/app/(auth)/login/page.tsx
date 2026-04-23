@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL || 'aminata@boutique-excellence.tg'
+const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD || 'demo1234'
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -118,14 +121,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Forgot password */}
+          {/* Password reset not implemented yet */}
           <div className="flex justify-end">
-            <Link
-              href="#"
-              className="text-sm text-[#00D4AA] hover:text-[#00C19C] transition-colors"
-            >
-              Mot de passe oublié ?
-            </Link>
+            <span className="text-sm text-muted-foreground">
+              Réinitialisation du mot de passe bientôt disponible
+            </span>
           </div>
 
           {/* Submit */}
@@ -162,7 +162,7 @@ export default function LoginPage() {
         <div className="mt-6 p-3 bg-[#00D4AA]/5 border border-[#00D4AA]/10 rounded-xl">
           <p className="text-xs text-muted-foreground text-center">
             <span className="font-medium text-[#1A1A2E] dark:text-white">Démo :</span>{' '}
-            aminata@boutique-excellence.tg / demo1234
+            {demoEmail} / {demoPassword}
           </p>
         </div>
       </CardContent>

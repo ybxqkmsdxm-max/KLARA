@@ -121,9 +121,16 @@ function Navbar() {
               Comment ça marche
             </a>
             <hr className="border-border" />
-            <Button className="w-full bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-semibold rounded-full">
-              Essai gratuit
-            </Button>
+            <Link href="/login" onClick={() => setMobileOpen(false)}>
+              <Button variant="ghost" className="w-full justify-center text-sm font-medium text-muted-foreground hover:text-foreground">
+                Se connecter
+              </Button>
+            </Link>
+            <Link href="/register" onClick={() => setMobileOpen(false)}>
+              <Button className="w-full bg-[#00D4AA] hover:bg-[#00B894] text-[#1A1A2E] font-semibold rounded-full">
+                Essai gratuit
+              </Button>
+            </Link>
           </div>
         </div>
       )}
@@ -863,7 +870,7 @@ function PricingSection() {
                       : "border-slate-200 dark:border-slate-700 text-[#1A1A2E] hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
-                  <Link href={plan.popular ? "/register" : "/register"}>
+                  <Link href={`/register?plan=${plan.name.toLowerCase()}`}>
                     {plan.cta}
                   </Link>
                 </Button>
@@ -1110,18 +1117,6 @@ function Footer() {
           <p className="text-sm text-white/40">
             &copy; {new Date().getFullYear()} Klara. Fait avec &#10084;&#65039; à Lomé, Togo.
           </p>
-          <div className="flex items-center gap-4">
-            {/* Réseaux sociaux placeholder */}
-            {["LinkedIn", "Facebook", "Twitter"].map((s) => (
-              <a
-                key={s}
-                href="#"
-                className="text-xs text-white/40 hover:text-[#00D4AA] transition-colors duration-200 hover:underline underline-offset-4 decoration-[#00D4AA]/30"
-              >
-                {s}
-              </a>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

@@ -69,8 +69,18 @@ export default function FacturesPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   const fetchFactures = useCallback(async () => {
     try {
@@ -78,6 +88,8 @@ export default function FacturesPage() {
       setError(null);
       const params = new URLSearchParams();
       if (activeTab) params.set("status", activeTab);
+      const trimmedSearch = debouncedSearch.trim();
+      if (trimmedSearch) params.set("search", trimmedSearch);
       params.set("page", page.toString());
       params.set("limit", "20");
       const res = await fetch(`/api/factures?${params.toString()}`);
@@ -91,7 +103,7 @@ export default function FacturesPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page]);
+  }, [activeTab, page, debouncedSearch]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -102,14 +114,6 @@ export default function FacturesPage() {
     setActiveTab(tab);
     setPage(1);
   };
-
-  const filteredFactures = search
-    ? factures.filter(
-        (f) =>
-          f.clientName.toLowerCase().includes(search.toLowerCase()) ||
-          f.number.toLowerCase().includes(search.toLowerCase())
-      )
-    : factures;
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
@@ -238,8 +242,8 @@ export default function FacturesPage() {
         <>
           {/* Mobile: Cards */}
           <div className="block lg:hidden space-y-3">
-            {filteredFactures.length > 0 ? (
-              filteredFactures.map((facture) => (
+            {factures.length > 0 ? (
+              factures.map((facture) => (
                 <Link key={facture.id} href={`/dashboard/factures/${facture.id}`}>
                   <Card className="hover:shadow-md active:scale-[0.98] active:border-[#00D4AA]/30 transition-all duration-200">
                     <CardContent className="p-4">
@@ -298,7 +302,12 @@ export default function FacturesPage() {
                   <Button
                     variant="outline"
                     className="mt-4"
-                    onClick={() => { setActiveTab(""); setSearch(""); }}
+                    onClick={() => {
+                      setActiveTab("");
+                      setSearch("");
+                      setDebouncedSearch("");
+                      setPage(1);
+                    }}
                   >
                     <Filter className="h-4 w-4 mr-1.5" />
                     Réinitialiser les filtres
@@ -346,8 +355,8 @@ export default function FacturesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {filteredFactures.length > 0 ? (
-                      filteredFactures.map((facture) => (
+                    {factures.length > 0 ? (
+                      factures.map((facture) => (
                         <tr
                           key={facture.id}
                           className="hover:bg-[#00D4AA]/5 transition-colors cursor-pointer border-l-2 border-l-transparent hover:border-l-[#00D4AA]"
@@ -422,7 +431,12 @@ export default function FacturesPage() {
                             <Button
                               variant="outline"
                               className="mt-4"
-                              onClick={() => { setActiveTab(""); setSearch(""); }}
+                              onClick={() => {
+                                setActiveTab("");
+                                setSearch("");
+                                setDebouncedSearch("");
+                                setPage(1);
+                              }}
                             >
                               <Filter className="h-4 w-4 mr-1.5" />
                               Réinitialiser les filtres

@@ -9,6 +9,7 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
   organizationName: z.string().min(2, "Le nom de l'organisation doit contenir au moins 2 caractères"),
   sector: z.string().optional(),
+  plan: z.enum(['STARTER', 'BUSINESS', 'PRO']).optional().default('STARTER'),
 })
 
 export async function POST(request: NextRequest) {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, email, password, organizationName, sector } = result.data
+    const { name, email, password, organizationName, sector, plan } = result.data
 
     // Check if user already exists
     const existingUser = await db.user.findUnique({
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
         name: organizationName,
         email,
         sector: sector || null,
-        plan: 'STARTER',
+        plan,
         trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
         country: 'TG',
         city: 'Lomé',

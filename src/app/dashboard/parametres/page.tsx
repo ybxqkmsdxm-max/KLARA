@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -221,12 +221,49 @@ function FieldError({ message }: FieldErrorProps) {
   );
 }
 
+type OrgForm = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  sector: string;
+  nif: string;
+};
+
+type BillingForm = {
+  taxRate: string;
+  paymentTerms: string;
+  defaultNotes: string;
+  defaultTerms: string;
+};
+
+const DEFAULT_ORG_FORM: OrgForm = {
+  name: "Boutique Excellence",
+  email: "contact@boutique-excellence.tg",
+  phone: "+228 90 12 34 56",
+  address: "45 Rue du Commerce, Tokoin",
+  city: "Lomé",
+  sector: "commerce",
+  nif: "TG-2024-001234",
+};
+
+const DEFAULT_BILLING_FORM: BillingForm = {
+  taxRate: "18",
+  paymentTerms: "30",
+  defaultNotes:
+    "Merci pour votre confiance.\n\nLe paiement est attendu dans les délais convenus.\n\nCordialement,\nL'équipe Boutique Excellence",
+  defaultTerms:
+    "Paiement à réception de la facture. Tout retard de paiement entraînera des pénalités de retard calculées au taux annuel de 10%.",
+};
+
 // ──────────────────────────────────────────────
 // Main Component
 // ──────────────────────────────────────────────
 
 export default function ParametresPage() {
   // ── Saving states ──
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingOrg, setSavingOrg] = useState(false);
   const [savedOrg, setSavedOrg] = useState(false);
   const [savingBilling, setSavingBilling] = useState(false);
@@ -237,26 +274,11 @@ export default function ParametresPage() {
   const [billingErrors, setBillingErrors] = useState<Record<string, string>>({});
 
   // ── Entreprise form state ──
-  const [orgForm, setOrgForm] = useState({
-    name: "Boutique Excellence",
-    email: "contact@boutique-excellence.tg",
-    phone: "+228 90 12 34 56",
-    address: "45 Rue du Commerce, Tokoin",
-    city: "Lomé",
-    sector: "commerce",
-    nif: "TG-2024-001234",
-  });
+  const [orgForm, setOrgForm] = useState<OrgForm>(DEFAULT_ORG_FORM);
   const [orgSnapshot, setOrgSnapshot] = useState({ ...orgForm });
 
   // ── Facturation form state ──
-  const [billingForm, setBillingForm] = useState({
-    taxRate: "18",
-    paymentTerms: "30",
-    defaultNotes:
-      "Merci pour votre confiance.\n\nLe paiement est attendu dans les délais convenus.\n\nCordialement,\nL'équipe Boutique Excellence",
-    defaultTerms:
-      "Paiement à réception de la facture. Tout retard de paiement entraînera des pénalités de retard calculées au taux annuel de 10%.",
-  });
+  const [billingForm, setBillingForm] = useState<BillingForm>(DEFAULT_BILLING_FORM);
   const [billingSnapshot, setBillingSnapshot] = useState({ ...billingForm });
 
   // ── Équipe state ──
@@ -266,6 +288,66 @@ export default function ParametresPage() {
   const [inviteRole, setInviteRole] = useState<"Admin" | "Member">("Member");
   const [inviteError, setInviteError] = useState("");
   const [inviting, setInviting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSettings() {
+      setLoadingSettings(true);
+      try {
+        const [orgResponse, billingResponse] = await Promise.all([
+          fetch("/api/parametres/organisation"),
+          fetch("/api/parametres/facturation"),
+        ]);
+
+        if (!orgResponse.ok || !billingResponse.ok) {
+          throw new Error("Impossible de charger les paramètres");
+        }
+
+        const [orgPayload, billingPayload] = await Promise.all([
+          orgResponse.json(),
+          billingResponse.json(),
+        ]);
+
+        const nextOrgForm: OrgForm = {
+          name: orgPayload.organization?.name ?? DEFAULT_ORG_FORM.name,
+          email: orgPayload.organization?.email ?? DEFAULT_ORG_FORM.email,
+          phone: orgPayload.organization?.phone ?? DEFAULT_ORG_FORM.phone,
+          address: orgPayload.organization?.address ?? DEFAULT_ORG_FORM.address,
+          city: orgPayload.organization?.city ?? DEFAULT_ORG_FORM.city,
+          sector: orgPayload.organization?.sector ?? DEFAULT_ORG_FORM.sector,
+          nif: orgPayload.organization?.nif ?? DEFAULT_ORG_FORM.nif,
+        };
+
+        const nextBillingForm: BillingForm = {
+          taxRate: billingPayload.billing?.taxRate ?? DEFAULT_BILLING_FORM.taxRate,
+          paymentTerms: billingPayload.billing?.paymentTerms ?? DEFAULT_BILLING_FORM.paymentTerms,
+          defaultNotes: billingPayload.billing?.defaultNotes ?? DEFAULT_BILLING_FORM.defaultNotes,
+          defaultTerms: billingPayload.billing?.defaultTerms ?? DEFAULT_BILLING_FORM.defaultTerms,
+        };
+
+        if (!cancelled) {
+          setOrgForm(nextOrgForm);
+          setOrgSnapshot(nextOrgForm);
+          setBillingForm(nextBillingForm);
+          setBillingSnapshot(nextBillingForm);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Erreur chargement paramètres:", error);
+          toast.error("Impossible de charger les paramètres sauvegardés");
+        }
+      } finally {
+        if (!cancelled) setLoadingSettings(false);
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ────────────────────────────────────────────
   // Handlers — Entreprise
@@ -295,12 +377,39 @@ export default function ParametresPage() {
   const handleSaveOrg = async () => {
     if (!validateOrg()) return;
     setSavingOrg(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSavingOrg(false);
-    setSavedOrg(true);
-    setOrgSnapshot({ ...orgForm });
-    toast.success("Informations de l'entreprise mises à jour avec succès");
-    setTimeout(() => setSavedOrg(false), 3000);
+    try {
+      const response = await fetch("/api/parametres/organisation", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orgForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("La sauvegarde a échoué");
+      }
+
+      const payload = await response.json();
+      const nextOrgForm: OrgForm = {
+        name: payload.organization?.name ?? orgForm.name,
+        email: payload.organization?.email ?? orgForm.email,
+        phone: payload.organization?.phone ?? orgForm.phone,
+        address: payload.organization?.address ?? orgForm.address,
+        city: payload.organization?.city ?? orgForm.city,
+        sector: payload.organization?.sector ?? orgForm.sector,
+        nif: payload.organization?.nif ?? orgForm.nif,
+      };
+
+      setOrgForm(nextOrgForm);
+      setOrgSnapshot(nextOrgForm);
+      setSavedOrg(true);
+      toast.success("Informations de l'entreprise mises à jour avec succès");
+      setTimeout(() => setSavedOrg(false), 3000);
+    } catch (error) {
+      console.error("Erreur sauvegarde entreprise:", error);
+      toast.error("Impossible de sauvegarder les informations de l'entreprise");
+    } finally {
+      setSavingOrg(false);
+    }
   };
 
   const handleCancelOrg = () => {
@@ -336,12 +445,36 @@ export default function ParametresPage() {
   const handleSaveBilling = async () => {
     if (!validateBilling()) return;
     setSavingBilling(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSavingBilling(false);
-    setSavedBilling(true);
-    setBillingSnapshot({ ...billingForm });
-    toast.success("Paramètres de facturation mis à jour avec succès");
-    setTimeout(() => setSavedBilling(false), 3000);
+    try {
+      const response = await fetch("/api/parametres/facturation", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(billingForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("La sauvegarde a échoué");
+      }
+
+      const payload = await response.json();
+      const nextBillingForm: BillingForm = {
+        taxRate: payload.billing?.taxRate ?? billingForm.taxRate,
+        paymentTerms: payload.billing?.paymentTerms ?? billingForm.paymentTerms,
+        defaultNotes: payload.billing?.defaultNotes ?? billingForm.defaultNotes,
+        defaultTerms: payload.billing?.defaultTerms ?? billingForm.defaultTerms,
+      };
+
+      setBillingForm(nextBillingForm);
+      setBillingSnapshot(nextBillingForm);
+      setSavedBilling(true);
+      toast.success("Paramètres de facturation mis à jour avec succès");
+      setTimeout(() => setSavedBilling(false), 3000);
+    } catch (error) {
+      console.error("Erreur sauvegarde facturation:", error);
+      toast.error("Impossible de sauvegarder les paramètres de facturation");
+    } finally {
+      setSavingBilling(false);
+    }
   };
 
   const handleCancelBilling = () => {
@@ -582,7 +715,7 @@ export default function ParametresPage() {
                 <Button
                   variant="outline"
                   onClick={handleCancelOrg}
-                  disabled={!hasOrgChanges || savingOrg}
+                  disabled={!hasOrgChanges || savingOrg || loadingSettings}
                   className="gap-1.5"
                 >
                   <X className="h-4 w-4" />
@@ -591,7 +724,7 @@ export default function ParametresPage() {
                 <Button
                   className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium gap-1.5"
                   onClick={handleSaveOrg}
-                  disabled={!hasOrgChanges || savingOrg}
+                  disabled={!hasOrgChanges || savingOrg || loadingSettings}
                 >
                   {savingOrg ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -721,7 +854,7 @@ export default function ParametresPage() {
                 <Button
                   variant="outline"
                   onClick={handleCancelBilling}
-                  disabled={!hasBillingChanges || savingBilling}
+                  disabled={!hasBillingChanges || savingBilling || loadingSettings}
                   className="gap-1.5"
                 >
                   <X className="h-4 w-4" />
@@ -730,7 +863,7 @@ export default function ParametresPage() {
                 <Button
                   className="bg-[#00D4AA] hover:bg-[#00C19C] text-white font-medium gap-1.5"
                   onClick={handleSaveBilling}
-                  disabled={!hasBillingChanges || savingBilling}
+                  disabled={!hasBillingChanges || savingBilling || loadingSettings}
                 >
                   {savingBilling ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1075,3 +1208,4 @@ export default function ParametresPage() {
     </div>
   );
 }
+
